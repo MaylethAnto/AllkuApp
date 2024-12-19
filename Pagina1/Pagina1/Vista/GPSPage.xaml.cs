@@ -1,9 +1,6 @@
 ﻿using Pagina1.Servicios;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Timers;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Maps;
@@ -14,16 +11,18 @@ namespace Pagina1.Vista
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class GPSPage : ContentPage
     {
+        private string latitud;
+        private string longitud;
+        private Timer timer;
 
         public GPSPage()
         {
             InitializeComponent();
             RequestPermissions();
             InitializeMap();
-
         }
 
-        // metodo para el estado de permisos de la api 
+        // Método para solicitar permisos de ubicación
         private async void RequestPermissions()
         {
             var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
@@ -33,7 +32,7 @@ namespace Pagina1.Vista
             }
         }
 
-        // metodo para inicializar el mapa en la carolina
+        // Método para inicializar el mapa en La Carolina, Quito
         private void InitializeMap()
         {
             var laCarolina = new Position(-0.182884, -78.484499);
@@ -49,18 +48,34 @@ namespace Pagina1.Vista
             map.Pins.Add(pin);
         }
 
-        //metodo para el boton de obtener ubicacion
-        private void OnSendSmsButtonClicked(object sender, EventArgs e)
+        // Método para establecer la ubicación desde un mensaje SMS
+        public void SetUbicacion(string lat, string lon)
         {
-            var phoneNumber = "+593959020392"; // Reemplaza con el número del dispositivo GPS
-            var message = "777"; // El comando para solicitar la ubicación
-
-            // Llama al método SendSms en MainActivity
-            var mainActivity = Xamarin.Forms.DependencyService.Get<IMainActivityService>();
-            mainActivity?.SendSms(phoneNumber, message);
+            latitud = lat;
+            longitud = lon;
         }
 
-        // metodo para obtener la posicion del gps tracker
+        // Método para conectar al GPS y obtener la ubicación periódicamente
+        private void OnConnectAndTrackClicked(object sender, EventArgs e)
+        {
+            var phoneNumber = "+593959020392"; // Reemplaza con el número del dispositivo GPS
+            var connectMessage = "000"; // El comando para conectar el dispositivo GPS
+            var trackMessage = "777"; // El comando para obtener la ubicación
+
+            // Llama al método SendSms en MainActivity para conectar el dispositivo
+            var mainActivity = DependencyService.Get<IMainActivityService>();
+            mainActivity?.SendSms(phoneNumber, connectMessage);
+
+            // Configura un Timer para enviar el comando de seguimiento periódicamente
+            timer = new Timer(60000); // Intervalo de 60,000 milisegundos (1 minuto)
+            timer.Elapsed += (s, args) =>
+            {
+                mainActivity?.SendSms(phoneNumber, trackMessage);
+            };
+            timer.Start();
+        }
+
+        // Método para obtener y actualizar la ubicación en el mapa
         public void UpdateMap(double latitude, double longitude)
         {
             var position = new Position(latitude, longitude);

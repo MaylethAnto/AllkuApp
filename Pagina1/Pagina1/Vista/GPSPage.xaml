@@ -8,8 +8,8 @@
 
     <ContentPage.Content>
         <StackLayout>
-            <Button Text="Obtener ubicación"
-                    Clicked="OnSendSmsButtonClicked" />
+            <Button Text="Conectar y obtener ubicacion GPS"
+                    Clicked="OnConnectAndTrackClicked" />
             <maps:Map x:Name="map"
                       VerticalOptions="FillAndExpand"
                       HorizontalOptions="FillAndExpand" />

@@ -33,6 +33,12 @@ namespace Pagina1.Vista
             SeleccionTipoUsuario.SelectedIndexChanged += OnTipoUsuarioSeleccionado;
         }
 
+        private async void OnRegistrarPaseadorClicked(object sender, EventArgs e)
+        {
+            // Navega a la página de registro de paseadores
+            await Navigation.PushAsync(new RegistroPaseadorPage());
+        }
+
         private async void CargarDatosIniciales()
         {
             try

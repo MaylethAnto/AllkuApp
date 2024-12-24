@@ -139,4 +139,17 @@
       <Name>Pagina1</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\allkaapp_logo_white.png" />
+    <Content Include="Resources\bell_icon.png" />
+    <Content Include="Resources\dieta_icon.png" />
+    <Content Include="Resources\ejercicio_icon.png" />
+    <Content Include="Resources\gps_icon.png" />
+    <Content Include="Resources\LogoImage.png" />
+    <Content Include="Resources\medical_icon.png" />
+    <Content Include="Resources\menu_icon.png" />
+    <Content Include="Resources\paw_pattern.png" />
+    <Content Include="Resources\perfil_icon.png" />
+    <Content Include="Resources\sos_icon.png" />
+  </ItemGroup>
 </Project>

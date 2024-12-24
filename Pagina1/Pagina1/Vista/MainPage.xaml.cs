@@ -1,11 +1,12 @@
 ﻿using Pagina1.Servicios;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
-
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -24,34 +25,66 @@ namespace Pagina1.Vista
             
         }
 
-       /* private async void CargarDatosCanino() 
+
+        private void CerrarSesion()
         {
             try
             {
-                //consumimos el api para obtener el id del canino
-                var canino = await ApiService.GetCaninos(1);
-                if (canino != null)
-                {
-                    //asignamos los datos a los controles
-                    NombreCanino.Text = canino.Nombre;
-                    EdadCanino.Text = $"Edad: {canino.Edad}";
-                    RazaCanino.Text = canino.Raza;
-                    PesoCanino.Text = $"Peso: {canino.Peso}";
-                    FotoCanino.Source = canino.Foto;
-                }
-                else
-                {
-                    await DisplayAlert("Error", "No se encontraros datos del canino.", "OK");
+                // Eliminar el token de sesión almacenado (o cualquier otro dato de sesión)
+                SecureStorage.Remove("user_token");
+                SecureStorage.Remove("user_id");
 
-                }
-
+                // Navegar a la página de inicio de sesión
+                Application.Current.MainPage = new NavigationPage(new LoginPage());
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error", $"Ocurrió un problema: {ex.Message}", "OK");
+                // Manejar cualquier excepción que ocurra al cerrar sesión
+                Debug.WriteLine($"Error al cerrar sesión: {ex.Message}");
             }
-        }*/
+        }
 
+        /* private async void CargarDatosCanino() 
+         {
+             try
+             {
+                 //consumimos el api para obtener el id del canino
+                 var canino = await ApiService.GetCaninos(1);
+                 if (canino != null)
+                 {
+                     //asignamos los datos a los controles
+                     NombreCanino.Text = canino.Nombre;
+                     EdadCanino.Text = $"Edad: {canino.Edad}";
+                     RazaCanino.Text = canino.Raza;
+                     PesoCanino.Text = $"Peso: {canino.Peso}";
+                     FotoCanino.Source = canino.Foto;
+                 }
+                 else
+                 {
+                     await DisplayAlert("Error", "No se encontraros datos del canino.", "OK");
+
+                 }
+
+             }
+             catch (Exception ex)
+             {
+                 await DisplayAlert("Error", $"Ocurrió un problema: {ex.Message}", "OK");
+             }
+         }*/
+        private async void OnMenuClicked(object sender, EventArgs e)
+        {
+            // Navegar a la página de menú
+            await Navigation.PushAsync(new MenuPage());
+        }
+
+        protected override bool OnBackButtonPressed()
+        {
+            // Cerrar sesión si se presiona el botón de retroceso
+            SecureStorage.Remove("user_token");
+            SecureStorage.Remove("user_id");
+            Application.Current.MainPage = new NavigationPage(new LoginPage());
+            return true; // Indicar que el evento del botón de retroceso ha sido manejado
+        }
         private async void OnRegistrarMascotaClicked(object sender, EventArgs e)
         {
             await Navigation.PushAsync(new RegistroMascotaPage());
@@ -88,10 +121,6 @@ namespace Pagina1.Vista
             await Navigation.PushAsync(new RecetasPage());
         }
 
-        private async void OnAddPetClicked(object sender, EventArgs e)
-        {
-            await Navigation.PushAsync(new RegistroMascotaPage());
-        }
 
         private async void OnLogoutClicked(object sender, EventArgs e)
         {

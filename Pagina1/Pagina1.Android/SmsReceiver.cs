@@ -25,7 +25,7 @@ namespace Pagina1.Droid
                         var remitente = smsMessage.OriginatingAddress; // Número del remitente
 
                         // Procesa el mensaje (puedes filtrar por el remitente del GPS, si es necesario)
-                        if (remitente.Contains("NUMERO_GPS")) // Reemplaza "NUMERO_GPS" con el número real
+                        if (remitente.Contains("+593959020392")) // Reemplaza "NUMERO_GPS" con el número real
                         {
                             string[] coordenadas = ExtraerCoordenadas(mensaje); // Método para extraer coordenadas
                             if (coordenadas != null)
@@ -49,7 +49,7 @@ namespace Pagina1.Droid
             if (partes.Length == 2)
             {
                 string latitud = partes[0].Split(':')[1].Trim();
-                string longitud = partes[1].Split(':')[1].Trim();
+                string longitud = partes[1].Split(':')[1].Trim(); 
                 return new[] { latitud, longitud };
             }
             return null;

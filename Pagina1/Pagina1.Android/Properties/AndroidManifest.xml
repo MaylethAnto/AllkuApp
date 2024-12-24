@@ -8,8 +8,14 @@
 	<uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+	<uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
+	<uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" />
+		<uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
+	<uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+	<uses-feature android:name="android.hardware.location.gps"/>
 	<application android:label="Pagina1.Android" android:theme="@style/MainTheme">
-	<meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyAZP3qZ5sdvVWa3ZvioIbiObrdG-lcXS5Q"/>
+		<uses-library android:name="org.apache.http.legacy" android:required="false"/>
+	<meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="AIzaSyAZP3qZ5sdvVWa3ZvioIbiObrdG-lcXS5Q"/>
 
 		<receiver android:name="crc646d35881797bc4dd6.SmsReceiver"
                   android:exported="true">

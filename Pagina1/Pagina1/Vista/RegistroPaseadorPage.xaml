@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Pagina1.Vista.RegisterPage"
-             Title="Registro">
+             x:Class="Pagina1.Vista.RegistroPaseadorPage"
+             Title="Registrar Paseador">
 
     <ScrollView>
         <StackLayout Padding="20" Spacing="15">
@@ -10,7 +10,7 @@
             <!-- Cédula -->
             <Label Text="Cédula (10 dígitos)" FontAttributes="Bold" />
             <Entry x:Name="CedulaEntry"
-                   Placeholder="Ingrese su cédula"
+                   Placeholder="Ingrese la cédula"
                    Keyboard="Numeric"
                    Margin="0,5"
                    MaxLength="10"
@@ -19,7 +19,7 @@
             <!-- Nombre -->
             <Label Text="Nombre completo" FontAttributes="Bold" />
             <Entry x:Name="NombreEntry"
-                   Placeholder="Ingrese su nombre"
+                   Placeholder="Ingrese el nombre"
                    Keyboard="Text"
                    Margin="0,5"
                    AutomationId="NombreEntry" />
@@ -27,7 +27,7 @@
             <!-- Usuario -->
             <Label Text="Usuario" FontAttributes="Bold" />
             <Entry x:Name="UsuarioEntry"
-                   Placeholder="Ingrese su usuario"
+                   Placeholder="Ingrese el usuario"
                    Margin="0,5"
                    IsVisible="True"
                    AutomationId="UsuarioEntry" />
@@ -35,7 +35,7 @@
             <!-- Correo -->
             <Label Text="Correo electrónico" FontAttributes="Bold" />
             <Entry x:Name="CorreoEntry"
-                   Placeholder="Ingrese su correo electrónico"
+                   Placeholder="Ingrese el correo electrónico"
                    Keyboard="Email"
                    Margin="0,5"
                    AutomationId="CorreoEntry" />
@@ -43,7 +43,7 @@
             <!-- Contraseña -->
             <Label Text="Contraseña" FontAttributes="Bold" />
             <Entry x:Name="ContraseñaEntry"
-                   Placeholder="Ingrese su contraseña"
+                   Placeholder="Ingrese la contraseña"
                    IsPassword="True"
                    Margin="0,5"
                    AutomationId="ContraseñaEntry" />
@@ -51,52 +51,29 @@
             <!-- Confirmar Contraseña -->
             <Label Text="Confirmar contraseña" FontAttributes="Bold" />
             <Entry x:Name="ConfirmarContraseñaEntry"
-                   Placeholder="Confirme su contraseña"
+                   Placeholder="Confirme la contraseña"
                    IsPassword="True"
                    Margin="0,5"
                    AutomationId="ConfirmarContraseñaEntry" />
 
-            <!-- Selección de Rol -->
-            <Label Text="Rol de usuario" FontAttributes="Bold" />
-            <Picker x:Name="RolPicker"
-                    Title="Seleccione un rol"
-                    Margin="0,5"
-                    SelectedIndexChanged="OnRoleChanged"
-                    AutomationId="RolPicker">
-                <Picker.ItemsSource>
-                    <x:Array Type="{x:Type x:String}">
-                        <x:String>Administrador</x:String>
-                        <x:String>Dueño</x:String>
-                    </x:Array>
-                </Picker.ItemsSource>
-            </Picker>
+            <!-- Dirección -->
+            <Label Text="Dirección" FontAttributes="Bold" />
+            <Entry x:Name="DireccionEntry"
+                   Placeholder="Ingrese la dirección"
+                   Margin="0,5"
+                   AutomationId="DireccionEntry" />
 
-            <!-- Stack para clave maestra (Administrador) -->
-            <StackLayout x:Name="ClaveMaestraStack" IsVisible="False">
-                <Entry x:Name="ClaveMaestraEntry" 
-                       Placeholder="Clave maestra" 
-                       IsPassword="True"/>
-            </StackLayout>
-
-            <!-- Campo adicional para dirección y celular (solo visible para Dueño) -->
-            <StackLayout x:Name="DireccionCelularStack" IsVisible="False">
-                <Label Text="Dirección" FontAttributes="Bold" />
-                <Entry x:Name="DireccionEntry"
-                       Placeholder="Ingrese su dirección"
-                       Margin="0,5"
-                       AutomationId="DireccionEntry" />
-
-                <Label Text="Número celular (10 dígitos)" FontAttributes="Bold" />
-                <Entry x:Name="CelularEntry"
-                       Placeholder="Ingrese su número celular"
-                       Keyboard="Numeric"
-                       Margin="0,5"
-                       MaxLength="10"
-                       AutomationId="CelularEntry" />
-            </StackLayout>
+            <!-- Número celular -->
+            <Label Text="Número celular (10 dígitos)" FontAttributes="Bold" />
+            <Entry x:Name="CelularEntry"
+                   Placeholder="Ingrese el número celular"
+                   Keyboard="Numeric"
+                   Margin="0,5"
+                   MaxLength="10"
+                   AutomationId="CelularEntry" />
 
             <!-- Botón de Registro -->
-            <Button Text="REGISTRAR"
+            <Button Text="REGISTRAR PASEADOR"
                     Clicked="OnRegisterButtonClicked"
                     BackgroundColor="#2196F3"
                     TextColor="White"

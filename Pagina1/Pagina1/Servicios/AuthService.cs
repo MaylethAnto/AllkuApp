@@ -32,6 +32,8 @@ namespace Pagina1.Servicios
         {
             try
             {
+                // Encriptar contraseña
+                dto.ContrasenaAdministrador = HashingHelper.HashPassword(dto.ContrasenaAdministrador);
                 Debug.WriteLine("Iniciando registro de administrador...");
                 Debug.WriteLine($"Datos: {JsonConvert.SerializeObject(dto)}");
 
@@ -74,6 +76,8 @@ namespace Pagina1.Servicios
         {
             try
             {
+                //Encriptar contraseña
+                registerDto.Contrasena = HashingHelper.HashPassword(registerDto.Contrasena);
                 Debug.WriteLine("Iniciando registro de usuario...");
                 Debug.WriteLine($"Datos de registro: {JsonConvert.SerializeObject(registerDto)}");
 

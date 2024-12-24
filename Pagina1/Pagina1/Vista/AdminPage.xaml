@@ -1,7 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Pagina1.Vista.AdminPage">
+             x:Class="Pagina1.Vista.AdminPage"
+             Title="Administrador">
+
+    <!-- ToolbarItem para el menú de registro de paseadores -->
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Registrar Paseador"
+                     IconImageSource="add_icon.png"  
+                     Clicked="OnRegistrarPaseadorClicked" />
+    </ContentPage.ToolbarItems>
+
     <Grid Padding="20" RowDefinitions="Auto, *">
         <!-- Fila 1: Picker y Button -->
         <Grid Row="0" ColumnSpacing="20" HorizontalOptions="Center">

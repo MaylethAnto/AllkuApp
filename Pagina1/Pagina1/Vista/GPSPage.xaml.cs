@@ -3,7 +3,7 @@ using System;
 using System.Timers;
 using Xamarin.Essentials;
 using Xamarin.Forms;
-using Xamarin.Forms.Maps;
+using Xamarin.Forms.GoogleMaps;
 using Xamarin.Forms.Xaml;
 
 namespace Pagina1.Vista
@@ -11,18 +11,14 @@ namespace Pagina1.Vista
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class GPSPage : ContentPage
     {
-        private string latitud;
-        private string longitud;
         private Timer timer;
 
         public GPSPage()
         {
             InitializeComponent();
             RequestPermissions();
-            InitializeMap();
         }
 
-        // Método para solicitar permisos de ubicación
         private async void RequestPermissions()
         {
             var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
@@ -30,9 +26,16 @@ namespace Pagina1.Vista
             {
                 status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
             }
+            if (status == PermissionStatus.Granted)
+            {
+                InitializeMap();
+            }
+            else
+            {
+                await DisplayAlert("Permission Denied", "Location permission is required to display the map.", "OK");
+            }
         }
 
-        // Método para inicializar el mapa en La Carolina, Quito
         private void InitializeMap()
         {
             var laCarolina = new Position(-0.182884, -78.484499);
@@ -48,26 +51,16 @@ namespace Pagina1.Vista
             map.Pins.Add(pin);
         }
 
-        // Método para establecer la ubicación desde un mensaje SMS
-        public void SetUbicacion(string lat, string lon)
-        {
-            latitud = lat;
-            longitud = lon;
-        }
-
-        // Método para conectar al GPS y obtener la ubicación periódicamente
         private void OnConnectAndTrackClicked(object sender, EventArgs e)
         {
-            var phoneNumber = "+593959020392"; // Reemplaza con el número del dispositivo GPS
-            var connectMessage = "000"; // El comando para conectar el dispositivo GPS
-            var trackMessage = "777"; // El comando para obtener la ubicación
+            var phoneNumber = "+593959020392";
+            var connectMessage = "000";
+            var trackMessage = "777";
 
-            // Llama al método SendSms en MainActivity para conectar el dispositivo
             var mainActivity = DependencyService.Get<IMainActivityService>();
             mainActivity?.SendSms(phoneNumber, connectMessage);
 
-            // Configura un Timer para enviar el comando de seguimiento periódicamente
-            timer = new Timer(60000); // Intervalo de 60,000 milisegundos (1 minuto)
+            timer = new Timer(60000);
             timer.Elapsed += (s, args) =>
             {
                 mainActivity?.SendSms(phoneNumber, trackMessage);
@@ -75,7 +68,6 @@ namespace Pagina1.Vista
             timer.Start();
         }
 
-        // Método para obtener y actualizar la ubicación en el mapa
         public void UpdateMap(double latitude, double longitude)
         {
             var position = new Position(latitude, longitude);

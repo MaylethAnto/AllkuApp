@@ -1,61 +1,206 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Pagina1.Vista.MainPage">
-    <ContentPage.Content>
-        <StackLayout>
-            <!-- Profile Information -->
-            <StackLayout>
-                <StackLayout Padding="20,0">
-                    <Frame BackgroundColor="#6a5acd" Padding="20" CornerRadius="10" Margin="20,20,20,0">
-                        <StackLayout>
-                            <StackLayout Orientation="Horizontal">
-                                <Image x:Name="FotoCanino" WidthRequest="100" HeightRequest="100" Aspect="AspectFill" />
-                                <StackLayout Margin="10,0,0,0" VerticalOptions="Center">
-                                    <Label x:Name="NombreCanino" TextColor="White" FontSize="24" FontAttributes="Bold" />
-                                    <Label x:Name="EdadCanino" TextColor="White" />
-                                    <Label x:Name="RazaCanino" TextColor="White" />
-                                    <Label x:Name="PesoCanino" TextColor="White" />
-                                    <StackLayout Orientation="Horizontal">
-                                        <Image Source="dog_footprint_icon.png" WidthRequest="20" HeightRequest="20" />
-                                        <Image Source="star_icon.png" WidthRequest="20" HeightRequest="20" />
-                                    </StackLayout>
-                                </StackLayout>
-                            </StackLayout>
+             x:Class="Pagina1.Vista.MainPage"
+             NavigationPage.HasNavigationBar="False">
+
+    <Grid BackgroundColor="White">
+        <!-- Definición de las filas del Grid -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Barra superior -->
+            <RowDefinition Height="*"/>
+            <!-- Contenido principal -->
+            <RowDefinition Height="Auto"/>
+            <!-- Texto de ayuda y botones inferiores -->
+        </Grid.RowDefinitions>
+
+        <!-- Barra superior -->
+        <Grid Grid.Row="0" Padding="20,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Image Source="bell_icon.png" 
+                   HeightRequest="40" 
+                   WidthRequest="40"
+                   Grid.Column="0"
+                   VerticalOptions="Center"/>
+
+            <Label Text="Perfil" 
+                   Grid.Column="1" 
+                   HorizontalOptions="Center" 
+                   VerticalOptions="Center"
+                   FontSize="18"
+                   FontAttributes="Bold"/>
+
+            <ImageButton Source="menu_icon.png" 
+                         HeightRequest="40" 
+                         WidthRequest="40"
+                         Grid.Column="2"
+                         VerticalOptions="Center"
+                         Clicked="OnMenuClicked"/>
+        </Grid>
+
+        <!-- Contenido Principal -->
+        <ScrollView Grid.Row="1">
+            <StackLayout Padding="20,10">
+                <!-- Tarjeta de Perfil -->
+                <Frame BackgroundColor="#2962FF" 
+                       CornerRadius="15" 
+                       Padding="20" 
+                       HasShadow="False">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Foto del perro -->
+                        <Frame CornerRadius="50"
+                               IsClippedToBounds="True" 
+                               Padding="0"
+                               BackgroundColor="White">
+                            <Image x:Name="FotoCanino"
+                                   Aspect="AspectFill"
+                                   HeightRequest="100"
+                                   WidthRequest="100"/>
+                        </Frame>
+
+                        <!-- Información del perro -->
+                        <StackLayout Grid.Column="1" 
+                                     Margin="15,0,0,0">
+                            <Label x:Name="NombreCanino"
+                                   TextColor="White"
+                                   FontSize="24"
+                                   FontAttributes="Bold"/>
+                            <Label x:Name="EdadCanino"
+                                   TextColor="White"
+                                   FontSize="16"/>
+                            <Label x:Name="PesoCanino"
+                                   TextColor="White"
+                                   FontSize="16"/>
+                            <Label x:Name="RazaCanino"
+                                   TextColor="White"
+                                   FontSize="16"/>
                         </StackLayout>
+                    </Grid>
+                </Frame>
+
+                <!-- Grid de Opciones -->
+                <Grid RowSpacing="20" ColumnSpacing="20" Margin="0,20,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="100"/>
+                        <RowDefinition Height="100"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Historia Clínica -->
+                    <Frame Grid.Row="0" Grid.Column="0" 
+                           BackgroundColor="White" 
+                           HasShadow="True"
+                           CornerRadius="15">
+                        <StackLayout>
+                            <Image Source="medical_icon.png" 
+                                   HeightRequest="60"
+                                   WidthRequest="60"
+                                   VerticalOptions="Center"/>
+                            <Label Text="HISTORIA CLÍNICA" 
+                                   HorizontalOptions="Center"
+                                   FontSize="12"/>
+                        </StackLayout>
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnHistorialClinicoClicked"/>
+                        </Frame.GestureRecognizers>
                     </Frame>
-                </StackLayout>
-            </StackLayout>
 
-            <!-- Sections Grid -->
-            <Grid Margin="20,20,20,0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+                    <!-- Ejercicio -->
+                    <Frame Grid.Row="0" Grid.Column="1" 
+                           BackgroundColor="White" 
+                           HasShadow="True"
+                           CornerRadius="15">
+                        <StackLayout>
+                            <Image Source="ejercicio_icon.png" 
+                                   HeightRequest="60"
+                                   WidthRequest="60"
+                                   VerticalOptions="Center"/>
+                            <Label Text="EJERCICIO" 
+                                   HorizontalOptions="Center"
+                                   FontSize="12"/>
+                        </StackLayout>
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnEjerciciosClicked"/>
+                        </Frame.GestureRecognizers>
+                    </Frame>
+
+                    <!-- Dieta ALLKU -->
+                    <Frame Grid.Row="1" Grid.Column="0" 
+                           BackgroundColor="White" 
+                           HasShadow="True"
+                           CornerRadius="15">
+                        <StackLayout>
+                            <Image Source="dieta_icon.png" 
+                                   HeightRequest="60"
+                                   WidthRequest="60"
+                                   VerticalOptions="Center"/>
+                            <Label Text="DIETA ALLKU" 
+                                   HorizontalOptions="Center"
+                                   FontSize="12"/>
+                        </StackLayout>
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnRecetasClicked"/>
+                        </Frame.GestureRecognizers>
+                    </Frame>
+
+                    <!-- GPS ALLKU -->
+                    <Frame Grid.Row="1" Grid.Column="1" 
+                           BackgroundColor="White" 
+                           HasShadow="True"
+                           CornerRadius="15">
+                        <StackLayout>
+                            <Image Source="gps_icon.png" 
+                                   HeightRequest="60"
+                                   WidthRequest="60"
+                                   VerticalOptions="Center"/>
+                            <Label Text="GPS ALLKU" 
+                                   HorizontalOptions="Center"
+                                   FontSize="12"/>
+                        </StackLayout>
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnGPSClicked"/>
+                        </Frame.GestureRecognizers>
+                    </Frame>
+                </Grid>
+            </StackLayout>
+        </ScrollView>
+
+        <!-- Texto de ayuda y botones inferiores -->
+        <StackLayout VerticalOptions="End" Grid.Row="2" Padding="20">
+            <Label Text="¿Encontraste un can sin hogar? Contáctanos"
+                   HorizontalOptions="Center"
+                   Margin="0,20"/>
+
+            <Grid ColumnSpacing="20">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Frame Grid.Row="0" Grid.Column="0" BackgroundColor="White" Padding="10" CornerRadius="10">
-                    <Button Text="Historial Clínico" VerticalOptions="Center" HorizontalOptions="Center" Clicked="OnHistorialClinicoClicked" />
-                </Frame>
-                <Frame Grid.Row="0" Grid.Column="1" BackgroundColor="White" Padding="10" CornerRadius="10">
-                    <Button Text="Ejercicio" VerticalOptions="Center" HorizontalOptions="Center" Clicked="OnEjerciciosClicked" />
-                </Frame>
-                <Frame Grid.Row="1" Grid.Column="0" BackgroundColor="White" Padding="10" CornerRadius="10">
-                    <Button Text="Receta" VerticalOptions="Center" HorizontalOptions="Center" Clicked="OnRecetasClicked" />
-                </Frame>
-                <Frame Grid.Row="1" Grid.Column="1" BackgroundColor="White" Padding="10" CornerRadius="10">
-                    <Button Text="GPS" VerticalOptions="Center" HorizontalOptions="Center" Clicked="OnGPSClicked" />
-                </Frame>
-            </Grid>
 
-            <!-- Buttons at the bottom -->
-            <StackLayout VerticalOptions="EndAndExpand" Margin="20">
-                <Button Text="Historial Médico Completo" BackgroundColor="Black" TextColor="White" Margin="0,10,0,0" CornerRadius="10" />
-                <Button Text="Agregar Mascota" BackgroundColor="Black" TextColor="White" Margin="0,10,0,0" CornerRadius="10" Clicked="OnAddPetClicked"/>
-            </StackLayout>
+                <ImageButton Source="sos_icon.png"
+                             BackgroundColor="Transparent"
+                             HeightRequest="40"
+                             Grid.Column="0"/>
+
+                <ImageButton Source="perfil_icon.png"
+                             BackgroundColor="Transparent"
+                             HeightRequest="40"
+                             Grid.Column="1"/>
+            </Grid>
         </StackLayout>
-    </ContentPage.Content>
+    </Grid>
 </ContentPage>

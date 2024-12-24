@@ -11,7 +11,7 @@ namespace Pagina1
         public App()
         {
             InitializeComponent();
-            MainPage = new NavigationPage(new LoginPage());
+            MainPage = new NavigationPage(new SplashPage());
         }
 
         protected override void OnStart()

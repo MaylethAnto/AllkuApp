@@ -80,30 +80,41 @@ namespace Pagina1.Servicios
         }
 
 
-        public async Task<bool> GuardarMascotaAsync(Canino canino)
+        public async Task<string> RegistrarCaninoAsync(CaninoRequest caninoRequest)
         {
-            using (var client = new HttpClient())
+            try
             {
-                var json = JsonConvert.SerializeObject(canino);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                // Asegúrate de que _baseUrl esté bien configurada
-                var response = await client.PostAsync($"{_baseUrl}/RegistrarCanino", content);
+                // Supongamos que tienes una URL base y un endpoint para registrar la mascota
+                string url = $"{_baseUrl}/RegistrarCanino";
 
-                // response.IsSuccessStatusCode es un bool
+                // Serializar el objeto canino a JSON
+                var json = JsonConvert.SerializeObject(caninoRequest);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                // Hacer una solicitud POST al API
+                var response = await _client.PostAsync(url, content);
+
+                // Leer la respuesta del API
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                // Verificar el estado de la respuesta
                 if (response.IsSuccessStatusCode)
                 {
-                    // Retorna true si la operación fue exitosa
-                    return true;
+                    return "Success";
                 }
                 else
                 {
-                    // Obtener detalles del error en texto
-                    var error = await response.Content.ReadAsStringAsync();
-                    throw new Exception($"Error al registrar la mascota: {error}");
+                    Debug.WriteLine($"Error en la respuesta del API: {responseContent}");
+                    return "Error";
                 }
             }
-
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error en RegistrarCaninoAsync: {ex.Message}");
+                return "Exception";
+            }
         }
+    
 
 
 
@@ -335,5 +346,13 @@ namespace Pagina1.Servicios
         }
     }
 
-
+    public class CaninoRequest
+    {
+        public string NombreCanino { get; set; }
+        public int EdadCanino { get; set; }
+        public string RazaCanino { get; set; }
+        public decimal PesoCanino { get; set; }
+        public byte[] FotoCanino { get; set; }
+        public string CedulaDueno { get; set; }
+    }
 }

@@ -8,6 +8,7 @@ using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 using Pagina1.Modelo;
 using Xamarin.Essentials;
+using System.Text.RegularExpressions;
 
 namespace Pagina1.Vista
 {
@@ -16,6 +17,13 @@ namespace Pagina1.Vista
     {
         private readonly AuthService _authService;
         private const string MASTER_PASSWORD = "TuClaveSecretaUnica2024$";
+
+        private readonly string[] validDomains = {
+            "gmail.com", "outlook.com", "yahoo.com", "hotmail.com",
+            "edu.ec", "edu.mx", "edu.ar", "edu.cl", "edu.pe", "edu.br", "edu.ve",
+            "edu.bo", "edu.uy", "edu.cr", "edu.pa", "edu.ni", "edu.hn", "edu.sv",
+            "edu.gt", "edu.do", "edu.pr"
+        };
 
         public RegisterPage()
         {
@@ -30,7 +38,6 @@ namespace Pagina1.Vista
             RolPicker.SelectedIndexChanged += OnRoleChanged;
         }
 
-
         private void OnRoleChanged(object sender, EventArgs e)
         {
             if (RolPicker.SelectedItem == null) return;
@@ -39,7 +46,7 @@ namespace Pagina1.Vista
 
             // Actualizar visibilidad basada en el rol
             ClaveMaestraStack.IsVisible = selectedRole == "Administrador";
-            DireccionCelularStack.IsVisible = selectedRole != "Administrador";
+            DireccionCelularStack.IsVisible = selectedRole == "Dueño";
         }
 
         private async void OnRegisterButtonClicked(object sender, EventArgs e)
@@ -51,22 +58,20 @@ namespace Pagina1.Vista
                 var cedula = CedulaEntry.Text.Trim();
                 var nombre = NombreEntry.Text.Trim();
                 var usuario = UsuarioEntry.Text.Trim();
-                var correoBase = CorreoEntry.Text.Trim();
-                var dominioCorreo = CorreoPicker.SelectedItem?.ToString() ?? "";
-                var correoCompleto = $"{correoBase}{dominioCorreo}";
+                var correo = CorreoEntry.Text.Trim();
                 var contrasena = ContraseñaEntry.Text;
                 var rolSeleccionado = RolPicker.SelectedItem?.ToString();
 
                 Debug.WriteLine($"Intentando registrar usuario con rol: {rolSeleccionado}");
-                Debug.WriteLine($"Correo completo: {correoCompleto}");
+                Debug.WriteLine($"Correo completo: {correo}");
 
                 if (rolSeleccionado == "Administrador")
                 {
-                    await RegistrarAdministrador(cedula, nombre, usuario, correoCompleto, contrasena);
+                    await RegistrarAdministrador(cedula, nombre, usuario, correo, contrasena);
                 }
-                else
+                else if (rolSeleccionado == "Dueño")
                 {
-                    await RegistrarUsuario(cedula, nombre, usuario, correoCompleto, contrasena, rolSeleccionado);
+                    await RegistrarUsuario(cedula, nombre, usuario, correo, contrasena, rolSeleccionado);
                 }
             }
             catch (Exception ex)
@@ -88,8 +93,7 @@ namespace Pagina1.Vista
                     string.IsNullOrWhiteSpace(CorreoEntry.Text) ||
                     string.IsNullOrWhiteSpace(ContraseñaEntry.Text) ||
                     string.IsNullOrWhiteSpace(ConfirmarContraseñaEntry.Text) ||
-                    RolPicker.SelectedItem == null ||
-                    CorreoPicker.SelectedItem == null)
+                    RolPicker.SelectedItem == null)
                 {
                     DisplayAlert("Error", "Por favor, complete todos los campos requeridos", "OK");
                     return false;
@@ -99,6 +103,13 @@ namespace Pagina1.Vista
                 if (CedulaEntry.Text.Length != 10 || !CedulaEntry.Text.All(char.IsDigit))
                 {
                     DisplayAlert("Error", "La cédula debe tener 10 dígitos numéricos", "OK");
+                    return false;
+                }
+
+                // Validar correo electrónico
+                if (!IsValidEmail(CorreoEntry.Text))
+                {
+                    DisplayAlert("Error", "Por favor, ingrese un correo electrónico válido", "OK");
                     return false;
                 }
 
@@ -119,7 +130,29 @@ namespace Pagina1.Vista
             }
         }
 
-        private async Task RegistrarAdministrador(string cedula, string nombre, string usuario,string correo, string contrasena)
+        private bool IsValidEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+
+            try
+            {
+                // Usar expresión regular para validar el formato general del correo electrónico
+                var emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+                if (!Regex.IsMatch(email, emailPattern, RegexOptions.IgnoreCase))
+                    return false;
+
+                // Validar que el dominio del correo esté en la lista de dominios válidos
+                var domain = email.Split('@').Last();
+                return validDomains.Contains(domain, StringComparer.OrdinalIgnoreCase);
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
+        }
+
+        private async Task RegistrarAdministrador(string cedula, string nombre, string usuario, string correo, string contrasena)
         {
             try
             {
@@ -130,7 +163,7 @@ namespace Pagina1.Vista
 
                 if (string.IsNullOrWhiteSpace(claveMaestra))
                 {
-                    await DisplayAlert("Error", "La clave maestra y el usuario administrador son requeridos", "OK");
+                    await DisplayAlert("Error", "La clave maestra es requerida", "OK");
                     return;
                 }
 
@@ -157,6 +190,9 @@ namespace Pagina1.Vista
                 {
                     await DisplayAlert("Éxito", "¡Administrador registrado exitosamente!", "OK");
                     LimpiarFormulario();
+                    // Redirigir a Login Page                                    
+                    await Navigation.PushAsync(new LoginPage());
+
                 }
                 else
                 {
@@ -170,12 +206,12 @@ namespace Pagina1.Vista
             }
         }
 
-        private async Task RegistrarUsuario(string cedula, string nombre, string usuario,string correo, string contrasena, string rol)
+        private async Task RegistrarUsuario(string cedula, string nombre, string usuario, string correo, string contrasena, string rol)
         {
-            Preferences.Set("CedulaUsuario", cedula);
             try
             {
                 Debug.WriteLine("Iniciando registro de usuario normal");
+
                 // Validar celular para roles no administrador
                 if (string.IsNullOrWhiteSpace(CelularEntry.Text) ||
                     CelularEntry.Text.Length != 10 ||
@@ -209,8 +245,14 @@ namespace Pagina1.Vista
 
                 if (result)
                 {
+                    // Guardar la cédula en las preferencias
+                    Preferences.Set("CedulaDueno", cedula);
+                    Debug.WriteLine($"Cédula guardada en preferencias: {cedula}");
                     await DisplayAlert("Éxito", "¡Usuario registrado exitosamente!", "OK");
                     LimpiarFormulario();
+
+                    // En lugar de navegar a LoginPage, establecerla como página principal
+                    Application.Current.MainPage = new NavigationPage(new LoginPage());
                 }
                 else
                 {
@@ -238,7 +280,6 @@ namespace Pagina1.Vista
                 CelularEntry.Text = string.Empty;
                 ClaveMaestraEntry.Text = string.Empty;
                 RolPicker.SelectedItem = null;
-                CorreoPicker.SelectedItem = null;
 
                 // Restablecer visibilidad
                 ClaveMaestraStack.IsVisible = false;

@@ -1,10 +1,10 @@
 ﻿using System;
 using Xamarin.Forms;
-using System.Net.Mail;
-using Pagina1.Vista;
-using Pagina1.Servicios; 
 using Xamarin.Essentials;
 using System.Threading.Tasks;
+using Pagina1.Vista;
+using Pagina1.Servicios;
+using System.Diagnostics;
 
 namespace Pagina1.Vista
 {
@@ -39,35 +39,55 @@ namespace Pagina1.Vista
                 if (response.Mensaje == "Login exitoso")
                 {
                     var rol = response.Rol;
+                    var cedulaDueno = response.CedulaDueno;
+                    var esPrimeraVez = response.EsPrimeraVez;
 
-                    // Redirigir según el rol
+                    // Agregar estas líneas de verificación
+                    Debug.WriteLine($"Cédula recibida del servidor: {cedulaDueno}");
+
+                    if (!string.IsNullOrEmpty(cedulaDueno))
+                    {
+                        Preferences.Set("CedulaDueno", cedulaDueno);
+                        // Verificar inmediatamente si se guardó
+                        var verificacion = Preferences.Get("CedulaDueno", "no encontrada");
+                        Debug.WriteLine($"Verificación de cédula guardada: {verificacion}");
+                    }
+                    else
+                    {
+                        Debug.WriteLine("Cédula vacía, no se guardará en las preferencias");
+                    }
+
+                    // Crear la página de destino según el rol
+                    Page destinationPage = null;
                     switch (rol)
                     {
                         case "Administrador":
-                            await Navigation.PushAsync(new AdminPage());
+                            destinationPage = new AdminPage();
                             break;
 
                         case "Dueño":
-                            bool esPrimeraVez = await VerificarPrimeraVez(nombreUsuario);
                             if (esPrimeraVez)
                             {
-                                await Navigation.PushAsync(new RegistroMascotaPage());
+                                destinationPage = new RegistroMascotaPage();
                             }
                             else
                             {
-                                await Navigation.PushAsync(new MainPage());
+                                destinationPage = new MainPage();
                             }
                             break;
 
                         case "Paseador":
-                            await Navigation.PushAsync(new PaseadoresPage());
+                            destinationPage = new PaseadoresPage();
                             break;
 
                         default:
                             statusLabel.TextColor = Color.Red;
                             statusLabel.Text = "Rol desconocido, contacte al administrador.";
-                            break;
+                            return;
                     }
+
+                    // Establecer la nueva página principal
+                    Application.Current.MainPage = new NavigationPage(destinationPage);
                 }
                 else
                 {
@@ -81,20 +101,26 @@ namespace Pagina1.Vista
                 statusLabel.Text = "Error al iniciar sesión: " + ex.Message;
             }
         }
-
-
         private async void OnRegisterClicked(object sender, EventArgs e)
         {
             // Navigate to the RegisterPage
             await Navigation.PushAsync(new RegisterPage());
         }
 
-        // Método simulado para verificar si es la primera vez que inicia sesión
+        // Método para verificar si es la primera vez que inicia sesión
         private async Task<bool> VerificarPrimeraVez(string nombreUsuario)
         {
-            // Lógica simulada: podrías consultar una API para validar este estado
-            return await Task.FromResult(true); // Cambiar según la lógica real
+            try
+            {
+                var esPrimeraVez = await _loginService.EsPrimeraVez(nombreUsuario);
+                return esPrimeraVez;
+            }
+            catch (Exception ex)
+            {
+                statusLabel.TextColor = Color.Red;
+                statusLabel.Text = "Error al verificar si es la primera vez: " + ex.Message;
+                return false;
+            }
         }
-
     }
 }

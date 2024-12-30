@@ -2,97 +2,131 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Pagina1.Vista.AdminPage"
-             Title="Administrador">
+             NavigationPage.HasNavigationBar="False">
 
-    <!-- ToolbarItem para el menú de registro de paseadores -->
-    <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Registrar Paseador"
-                     IconImageSource="add_icon.png"  
-                     Clicked="OnRegistrarPaseadorClicked" />
-    </ContentPage.ToolbarItems>
+    <Grid BackgroundColor="White">
+        <!-- Definición de las filas del Grid -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Barra superior -->
+            <RowDefinition Height="*"/>
+            <!-- Contenido principal -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-    <Grid Padding="20" RowDefinitions="Auto, *">
-        <!-- Fila 1: Picker y Button -->
-        <Grid Row="0" ColumnSpacing="20" HorizontalOptions="Center">
-            <StackLayout Orientation="Horizontal" HorizontalOptions="Center">
-                <!-- Picker para Selección de Usuario -->
-                <Picker x:Name="SeleccionTipoUsuario" 
+        <!-- Barra superior -->
+        <Grid Grid.Row="0" Padding="20,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Label Text="Administrador" 
+               Grid.Column="1" 
+               HorizontalOptions="Center" 
+               VerticalOptions="Center"
+               FontSize="18"
+               FontAttributes="Bold"/>
+
+            <ImageButton Source="menu_icon.png" 
+                 HeightRequest="40" 
+                 WidthRequest="40"
+                 Grid.Column="2"
+                 VerticalOptions="Center"
+                 Clicked="ImageButton_Clicked"/>
+        </Grid>
+
+        <!-- Contenido Principal -->
+        <Grid Grid.Row="1" Padding="20">
+            <Grid.RowDefinitions>
+                <!-- Fila 1: Picker y Button -->
+                <RowDefinition Height="Auto"/>
+                <!-- Fila 2: ScrollView para el contenido principal -->
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Fila 1: Picker y Button -->
+            <Grid Grid.Row="0" ColumnSpacing="20" HorizontalOptions="Center">
+                <StackLayout Orientation="Horizontal" HorizontalOptions="Center">
+                    <!-- Picker para Selección de Usuario -->
+                    <Picker x:Name="SeleccionTipoUsuario" 
                     Title="Seleccione tipo de usuario"
                     WidthRequest="200"
                     HorizontalOptions="StartAndExpand" 
                     Margin="10"/>
-
-               
-            </StackLayout>
-        </Grid>
-
-        <Grid Row="1">
-            <StackLayout VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
-
-                <!-- Stack para Dueños -->
-                <StackLayout x:Name="StackDuenos" IsVisible="True" VerticalOptions="FillAndExpand">
-                    <Label Text="Dueños Registrados" FontAttributes="Bold" HorizontalOptions="Center"/>
-                    <ListView x:Name="ListaDuenos" HasUnevenRows="True" VerticalOptions="FillAndExpand">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <ViewCell>
-                                    <Grid Padding="10">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Label Grid.Column="0" Text="{Binding CedulaDueno}" />
-                                        <Label Grid.Column="1" Text="{Binding NombreDueno}" />
-                                    </Grid>
-                                </ViewCell>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
                 </StackLayout>
+            </Grid>
 
-                <!-- Stack para Caninos -->
-                <StackLayout x:Name="StackCaninos" IsVisible="False" VerticalOptions="FillAndExpand">
-                    <Label Text="Caninos Registrados" FontAttributes="Bold" HorizontalOptions="Center"/>
-                    <ListView x:Name="ListaCaninos" HasUnevenRows="True" VerticalOptions="FillAndExpand">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <ViewCell>
-                                    <Grid Padding="10">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Label Grid.Column="0" Text="{Binding NombreCanino}" />
-                                        <Label Grid.Column="1" Text="{Binding RazaCanino}" />
-                                    </Grid>
-                                </ViewCell>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                </StackLayout>
+            <!-- Fila 2: ScrollView para el contenido principal -->
+            <ScrollView Grid.Row="1">
+                <StackLayout Padding="20,10">
+                    <StackLayout VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
 
-                <!-- Stack para Paseadores -->
-                <StackLayout x:Name="StackPaseadores" IsVisible="False" VerticalOptions="FillAndExpand">
-                    <Label Text="Paseadores Registrados" FontAttributes="Bold" HorizontalOptions="Center"/>
-                    <ListView x:Name="ListaPaseadores" HasUnevenRows="True" VerticalOptions="FillAndExpand">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <ViewCell>
-                                    <Grid Padding="10">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Label Grid.Column="0" Text="{Binding CedulaPaseador}" />
-                                        <Label Grid.Column="1" Text="{Binding NombrePaseador}" />
-                                    </Grid>
-                                </ViewCell>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                        <!-- Stack para Dueños -->
+                        <StackLayout x:Name="StackDuenos" IsVisible="True" VerticalOptions="FillAndExpand">
+                            <Label Text="Dueños Registrados" FontAttributes="Bold" HorizontalOptions="Center"/>
+                            <ListView x:Name="ListaDuenos" HasUnevenRows="True" VerticalOptions="FillAndExpand">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <ViewCell>
+                                            <Grid Padding="10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Label Grid.Column="0" Text="{Binding CedulaDueno}" />
+                                                <Label Grid.Column="1" Text="{Binding NombreDueno}" />
+                                            </Grid>
+                                        </ViewCell>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackLayout>
+
+                        <!-- Stack para Caninos -->
+                        <StackLayout x:Name="StackCaninos" IsVisible="False" VerticalOptions="FillAndExpand">
+                            <Label Text="Caninos Registrados" FontAttributes="Bold" HorizontalOptions="Center"/>
+                            <ListView x:Name="ListaCaninos" HasUnevenRows="True" VerticalOptions="FillAndExpand">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <ViewCell>
+                                            <Grid Padding="10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Label Grid.Column="0" Text="{Binding NombreCanino}" />
+                                                <Label Grid.Column="1" Text="{Binding RazaCanino}" />
+                                            </Grid>
+                                        </ViewCell>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackLayout>
+
+                        <!-- Stack para Paseadores -->
+                        <StackLayout x:Name="StackPaseadores" IsVisible="False" VerticalOptions="FillAndExpand">
+                            <Label Text="Paseadores Registrados" FontAttributes="Bold" HorizontalOptions="Center"/>
+                            <ListView x:Name="ListaPaseadores" HasUnevenRows="True" VerticalOptions="FillAndExpand">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <ViewCell>
+                                            <Grid Padding="10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Label Grid.Column="0" Text="{Binding CedulaPaseador}" />
+                                                <Label Grid.Column="1" Text="{Binding NombrePaseador}" />
+                                            </Grid>
+                                        </ViewCell>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackLayout>
+                    </StackLayout>
                 </StackLayout>
-            </StackLayout>
+            </ScrollView>
         </Grid>
     </Grid>
-    
 </ContentPage>

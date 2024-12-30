@@ -23,11 +23,26 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Image Source="bell_icon.png" 
-                   HeightRequest="40" 
-                   WidthRequest="40"
-                   Grid.Column="0"
-                   VerticalOptions="Center"/>
+            <!-- Campanita de notificaciones -->
+            <Grid Grid.Row="0" VerticalOptions="Center" HorizontalOptions="End" Margin="10">
+                <Image Source="bell_icon.png" 
+                       HeightRequest="40" 
+                       WidthRequest="40"
+                       VerticalOptions="Center"
+                       x:Name="BellIcon">
+                    <Image.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnBellIconTapped" />
+                    </Image.GestureRecognizers>
+                </Image>
+                <BoxView x:Name="NotificationDot"
+                         Color="Red"
+                         WidthRequest="10"
+                         HeightRequest="10"
+                         CornerRadius="5"
+                         HorizontalOptions="End"
+                         VerticalOptions="Start"
+                         IsVisible="False"/>
+            </Grid>
 
             <Label Text="Perfil" 
                    Grid.Column="1" 
@@ -49,24 +64,24 @@
             <StackLayout Padding="20,10">
                 <!-- Tarjeta de Perfil -->
                 <Frame BackgroundColor="#2962FF" 
-                       CornerRadius="15" 
+                       CornerRadius="20" 
                        Padding="20" 
                        HasShadow="False">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="120"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
                         <!-- Foto del perro -->
-                        <Frame CornerRadius="50"
+                        <Frame CornerRadius="60"
                                IsClippedToBounds="True" 
                                Padding="0"
                                BackgroundColor="White">
                             <Image x:Name="FotoCanino"
                                    Aspect="AspectFill"
-                                   HeightRequest="100"
-                                   WidthRequest="100"/>
+                                   HeightRequest="120"
+                                   WidthRequest="120"/>
                         </Frame>
 
                         <!-- Información del perro -->

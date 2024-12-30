@@ -1,14 +1,11 @@
 ﻿using Pagina1.Dtos;
 using Pagina1.Servicios;
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Diagnostics;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
-using Pagina1.Modelo;
-using Xamarin.Essentials;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace Pagina1.Vista
 {
@@ -35,24 +32,16 @@ namespace Pagina1.Vista
             {
                 if (!ValidarCampos()) return;
 
-                var cedula = CedulaEntry.Text.Trim();
-                var nombre = NombreEntry.Text.Trim();
-                var usuario = UsuarioEntry.Text.Trim();
-                var correo = CorreoEntry.Text.Trim();
-                var contrasena = ContraseñaEntry.Text;
-                var direccion = DireccionEntry.Text.Trim();
-                var celular = CelularEntry.Text.Trim();
-
                 var registerDto = new RegistrarUsuarioDto
                 {
-                    Cedula = cedula,
-                    Nombre = nombre,
-                    Usuario = usuario,
-                    Correo = correo,
-                    Contrasena = contrasena,
+                    Cedula = CedulaEntry.Text.Trim(),
+                    Nombre = NombreEntry.Text.Trim(),
+                    Usuario = UsuarioEntry.Text.Trim(),
+                    Correo = CorreoEntry.Text.Trim(),
+                    Contrasena = ContraseñaEntry.Text,
                     Rol = "Paseador",
-                    Direccion = direccion,
-                    Celular = celular
+                    Direccion = DireccionEntry.Text.Trim(),
+                    Celular = CelularEntry.Text.Trim()
                 };
 
                 Debug.WriteLine("Enviando datos al servicio de registro de paseador");
@@ -76,51 +65,38 @@ namespace Pagina1.Vista
 
         private bool ValidarCampos()
         {
-            try
+            if (string.IsNullOrWhiteSpace(CedulaEntry.Text) ||
+                string.IsNullOrWhiteSpace(NombreEntry.Text) ||
+                string.IsNullOrWhiteSpace(UsuarioEntry.Text) ||
+                string.IsNullOrWhiteSpace(CorreoEntry.Text) ||
+                string.IsNullOrWhiteSpace(ContraseñaEntry.Text) ||
+                string.IsNullOrWhiteSpace(ConfirmarContraseñaEntry.Text) ||
+                string.IsNullOrWhiteSpace(DireccionEntry.Text) ||
+                string.IsNullOrWhiteSpace(CelularEntry.Text))
             {
-                // Validar campos requeridos
-                if (string.IsNullOrWhiteSpace(CedulaEntry.Text) ||
-                    string.IsNullOrWhiteSpace(NombreEntry.Text) ||
-                    string.IsNullOrWhiteSpace(UsuarioEntry.Text) ||
-                    string.IsNullOrWhiteSpace(CorreoEntry.Text) ||
-                    string.IsNullOrWhiteSpace(ContraseñaEntry.Text) ||
-                    string.IsNullOrWhiteSpace(ConfirmarContraseñaEntry.Text) ||
-                    string.IsNullOrWhiteSpace(DireccionEntry.Text) ||
-                    string.IsNullOrWhiteSpace(CelularEntry.Text))
-                {
-                    DisplayAlert("Error", "Por favor, complete todos los campos requeridos", "OK");
-                    return false;
-                }
-
-                // Validar cédula
-                if (CedulaEntry.Text.Length != 10 || !CedulaEntry.Text.All(char.IsDigit))
-                {
-                    DisplayAlert("Error", "La cédula debe tener 10 dígitos numéricos", "OK");
-                    return false;
-                }
-
-                // Validar correo electrónico
-                if (!IsValidEmail(CorreoEntry.Text))
-                {
-                    DisplayAlert("Error", "Por favor, ingrese un correo electrónico válido", "OK");
-                    return false;
-                }
-
-                // Validar contraseñas
-                if (ContraseñaEntry.Text != ConfirmarContraseñaEntry.Text)
-                {
-                    DisplayAlert("Error", "Las contraseñas no coinciden", "OK");
-                    return false;
-                }
-
-                Debug.WriteLine("Validación básica exitosa");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error en ValidarCampos: {ex.Message}");
+                DisplayAlert("Error", "Por favor, complete todos los campos requeridos", "OK");
                 return false;
             }
+
+            if (CedulaEntry.Text.Length != 10 || !CedulaEntry.Text.All(char.IsDigit))
+            {
+                DisplayAlert("Error", "La cédula debe tener 10 dígitos numéricos", "OK");
+                return false;
+            }
+
+            if (!IsValidEmail(CorreoEntry.Text))
+            {
+                DisplayAlert("Error", "Por favor, ingrese un correo electrónico válido", "OK");
+                return false;
+            }
+
+            if (ContraseñaEntry.Text != ConfirmarContraseñaEntry.Text)
+            {
+                DisplayAlert("Error", "Las contraseñas no coinciden", "OK");
+                return false;
+            }
+
+            return true;
         }
 
         private bool IsValidEmail(string email)
@@ -128,21 +104,12 @@ namespace Pagina1.Vista
             if (string.IsNullOrWhiteSpace(email))
                 return false;
 
-            try
-            {
-                // Usar expresión regular para validar el formato general del correo electrónico
-                var emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-                if (!Regex.IsMatch(email, emailPattern, RegexOptions.IgnoreCase))
-                    return false;
-
-                // Validar que el dominio del correo esté en la lista de dominios válidos
-                var domain = email.Split('@').Last();
-                return validDomains.Contains(domain, StringComparer.OrdinalIgnoreCase);
-            }
-            catch (FormatException)
-            {
+            var emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            if (!Regex.IsMatch(email, emailPattern, RegexOptions.IgnoreCase))
                 return false;
-            }
+
+            var domain = email.Split('@').Last();
+            return validDomains.Contains(domain, StringComparer.OrdinalIgnoreCase);
         }
     }
 }

@@ -11,7 +11,7 @@
             <Image Source="paw_pattern.png"
                    Aspect="Fill"
                    Opacity="0.1"
-                    VerticalOptions="FillAndExpand"
+                   VerticalOptions="FillAndExpand"
                    HorizontalOptions="FillAndExpand"/>
         </Grid>
 
@@ -120,7 +120,12 @@
                                HorizontalOptions="Center"
                                VerticalOptions="End"
                                FontSize="14"
-                               Margin="0,20,0,0"/>
+                               Margin="0,20,0,0">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer 
+                                Command="{Binding OpenWhatsAppCommand}" />
+                            </Label.GestureRecognizers>
+                        </Label>
                     </StackLayout>
                 </Frame>
             </Grid>

@@ -1,58 +1,94 @@
-﻿using Pagina1.Servicios;
+﻿using Pagina1.Dtos;
+using Pagina1.Servicios;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
+using Xamarin.Essentials;
+using System.Diagnostics;
+using System.IO;
 
 namespace Pagina1.Vista
 {
-    [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class PaseadoresPage : ContentPage
     {
-        public ObservableCollection<CaninoConDuenoDTO> Caninos { get; set; }
+        private readonly ApiService _apiService;
+        private CaninoDto _canSeleccionado;
 
         public PaseadoresPage()
         {
             InitializeComponent();
-            Caninos = new ObservableCollection<CaninoConDuenoDTO>();
-            CaninosListView.ItemsSource = Caninos;
-            CargarCaninos();
+            _apiService = new ApiService();
+            CargarCanes();
         }
 
-        private async void CargarCaninos()
+        private async void CargarCanes()
         {
-            /*var caninos = await ApiService.ObtenerCaninosConDuenosAsync();
-            foreach (var canino in caninos)
+            var canes = await _apiService.GetCaninesAsync();
+            foreach (var canino in canes)
             {
-                Caninos.Add((CaninoConDuenoDTO)canino);
-            }*/
+                // Convertir byte array a ImageSource
+                if (canino.FotoCanino != null)
+                {
+                    canino.FotoCaninoImageSource = ImageSource.FromStream(() => new MemoryStream(canino.FotoCanino));
+                }
+            }
+            CanesListView.ItemsSource = canes;
         }
 
-        private async void OnCaninoSeleccionado(object sender, SelectedItemChangedEventArgs e)
+        private void OnCanSelected(object sender, SelectedItemChangedEventArgs e)
         {
-           // if (e.SelectedItem is CaninoConDuenoDTO caninoSeleccionado)
+            _canSeleccionado = e.SelectedItem as CaninoDto;
+        }
+
+        private async void OnEnviarNotificacionClicked(object sender, EventArgs e)
+        {
+            try
             {
-                // Aquí puedes registrar el ID del canino en la base de datos
-              //  await DisplayAlert("Canino Seleccionado", $"Seleccionaste a {caninoSeleccionado.NombreCanino}", "OK");
-                // Opcional: actualiza el paseador con el canino seleccionado
+                if (_canSeleccionado == null)
+                {
+                    await DisplayAlert("Error", "Seleccione un can para pasear.", "OK");
+                    return;
+                }
+
+                Debug.WriteLine("=== Intentando recuperar información del paseador ===");
+
+                var celularPaseador = Preferences.Get("CelularPaseador", null);
+                var nombrePaseador = Preferences.Get("NombrePaseador", null);
+                Debug.WriteLine($"Celular recuperado: {celularPaseador}");
+                Debug.WriteLine($"Nombre recuperado: {nombrePaseador}");
+
+                if (string.IsNullOrEmpty(celularPaseador) || string.IsNullOrEmpty(nombrePaseador))
+                {
+                    Debug.WriteLine("ERROR: No se encontró la información del paseador en las preferencias");
+                    await DisplayAlert("Error", "No se pudo recuperar la información del paseador.", "OK");
+                    return;
+                }
+
+                Debug.WriteLine($"Información del paseador recuperada exitosamente: {nombrePaseador}, {celularPaseador}");
+
+                var mensaje = $"Hola, me llamo {nombrePaseador} quiero pasear a tu can {_canSeleccionado.NombreCanino}.\nContactame al siguiente número por favor: ";
+
+                // Enviar la notificación a través de la API
+                var (exito, message) = await _apiService.EnviarNotificacionAsync(_canSeleccionado.IdCanino, mensaje, celularPaseador);
+
+                if (exito)
+                {
+                    await DisplayAlert("Éxito", message, "OK");
+                }
+                else
+                {
+                    await DisplayAlert("Error", message, "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error al procesar la notificación: {ex.Message}");
+                await DisplayAlert("Error", "Ocurrió un error al procesar la solicitud.", "OK");
             }
         }
 
-        private void OnVerMisPerrosClick(object sender, EventArgs e)
+        private async void OnMenuPaseador_Clicked(object sender, EventArgs e)
         {
-            // Navegar a la lista de perros asignados
-            // Navigation.PushAsync(new ListaPerrosAsignadosPage());
-        }
-
-        private void OnVerSolicitudesClick(object sender, EventArgs e)
-        {
-            // Navegar a solicitudes de paseo
-            // Navigation.PushAsync(new SolicitudesPaseoPage());
+            await Navigation.PushAsync(new MenuPaseadorPage());
         }
     }
 }

@@ -1,6 +1,9 @@
 ﻿using Android.App;
 using Android.Content;
 using Android.Telephony;
+using Xamarin.Essentials;
+using System.Text.RegularExpressions;
+using System;
 
 namespace Pagina1.Droid
 {
@@ -8,51 +11,83 @@ namespace Pagina1.Droid
     [IntentFilter(new[] { "android.provider.Telephony.SMS_RECEIVED" })]
     public class SmsReceiver : BroadcastReceiver
     {
+        private const string GPS_PHONE_NUMBER = "+593959020392";
+        private static readonly Regex locationRegex = new Regex(@"lat:([0-9.-]+).*long:([0-9.-]+)", RegexOptions.IgnoreCase);
+
         public override void OnReceive(Context context, Intent intent)
         {
+            if (intent.Action != "android.provider.Telephony.SMS_RECEIVED") return;
+
             var bundle = intent.Extras;
-            if (bundle != null)
+            if (bundle == null) return;
+
+            try
             {
                 var pdus = (Java.Lang.Object[])bundle.Get("pdus");
-                if (pdus != null)
+                if (pdus == null) return;
+
+                foreach (var pdu in pdus)
                 {
-                    foreach (var pdu in pdus)
-                    {
-                        var bytes = (byte[])(pdu); // Conversión correcta a byte[]
-                        var smsMessage = SmsMessage.CreateFromPdu(bytes); // Crear mensaje SMS desde el PDU
-
-                        var mensaje = smsMessage.MessageBody; // Cuerpo del mensaje
-                        var remitente = smsMessage.OriginatingAddress; // Número del remitente
-
-                        // Procesa el mensaje (puedes filtrar por el remitente del GPS, si es necesario)
-                        if (remitente.Contains("+593959020392")) // Reemplaza "NUMERO_GPS" con el número real
-                        {
-                            string[] coordenadas = ExtraerCoordenadas(mensaje); // Método para extraer coordenadas
-                            if (coordenadas != null)
-                            {
-                                double latitud = double.Parse(coordenadas[0]);
-                                double longitud = double.Parse(coordenadas[1]);
-
-                                // Llama al método para actualizar las coordenadas en MainActivity
-                                MainActivity.Instance.SetUbicacion(latitud, longitud);
-                            }
-                        }
-                    }
+                    ProcessSmsMessage(pdu);
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing SMS: {ex.Message}");
             }
         }
 
-        private string[] ExtraerCoordenadas(string mensaje)
+        private void ProcessSmsMessage(Java.Lang.Object pdu)
         {
-            // Asume que el mensaje contiene algo como: "Lat: XX.XXXX, Long: YY.YYYY"
-            var partes = mensaje.Split(',');
-            if (partes.Length == 2)
+            var bytes = (byte[])(pdu);
+            var smsMessage = Android.Telephony.SmsMessage.CreateFromPdu(bytes);
+
+            if (!smsMessage.OriginatingAddress.Contains(GPS_PHONE_NUMBER)) return;
+
+            var coordinates = ExtractCoordinates(smsMessage.MessageBody);
+            if (coordinates != null)
             {
-                string latitud = partes[0].Split(':')[1].Trim();
-                string longitud = partes[1].Split(':')[1].Trim(); 
-                return new[] { latitud, longitud };
+                UpdateLocation(coordinates.Value.latitude, coordinates.Value.longitude);
             }
+        }
+
+        private (double latitude, double longitude)? ExtractCoordinates(string message)
+        {
+            var match = locationRegex.Match(message);
+            if (!match.Success) return null;
+
+            try
+            {
+                var latitude = double.Parse(match.Groups[1].Value);
+                var longitude = double.Parse(match.Groups[2].Value);
+
+                // Validar que las coordenadas están en rangos válidos
+                if (latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180)
+                {
+                    return (latitude, longitude);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing coordinates: {ex.Message}");
+            }
+
             return null;
+        }
+
+        private void UpdateLocation(double latitude, double longitude)
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                try
+                {
+                    MainActivity.Instance?.SetUbicacion(latitude, longitude);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error updating location: {ex.Message}");
+                }
+            });
         }
     }
 }

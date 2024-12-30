@@ -2,10 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
@@ -21,56 +18,74 @@ namespace Pagina1.Vista
         {
             InitializeComponent();
             _apiService = new ApiService();
-            //CargarDatosCanino();
-            
+            CargarDatosCanino();
+            CheckForNotifications();
         }
 
-
-        private void CerrarSesion()
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+            CheckForNotifications();
+        }
+        private async void CargarDatosCanino()
         {
             try
             {
-                // Eliminar el token de sesión almacenado (o cualquier otro dato de sesión)
-                SecureStorage.Remove("user_token");
-                SecureStorage.Remove("user_id");
+                // Leer la cédula del dueño desde Preferences
+                var cedulaDueno = Preferences.Get("CedulaDueno", string.Empty);
+                if (string.IsNullOrEmpty(cedulaDueno))
+                {
+                    await DisplayAlert("Error", "No se pudo obtener la cédula del dueño.", "OK");
+                    return;
+                }
 
-                // Navegar a la página de inicio de sesión
-                Application.Current.MainPage = new NavigationPage(new LoginPage());
+                // Consumimos el API para obtener los datos del canino
+                var caninos = await _apiService.GetCaninosByCedulaDuenoAsync(cedulaDueno);
+                if (caninos != null && caninos.Count > 0)
+                {
+                    // Asignamos los datos a los controles (aquí se asume que se toma el primer canino de la lista)
+                    var primerCanino = caninos[0];
+                    NombreCanino.Text = primerCanino.NombreCanino;
+                    EdadCanino.Text = $"Edad: {primerCanino.EdadCanino} años";
+                    RazaCanino.Text = $"Raza: {primerCanino.RazaCanino}";
+                    PesoCanino.Text = $"Peso: {primerCanino.PesoCanino} kg";
+                    if (primerCanino.FotoCanino != null && primerCanino.FotoCanino.Length > 0)
+                    {
+                        FotoCanino.Source = ImageSource.FromStream(() => new MemoryStream(primerCanino.FotoCanino));
+                    }
+                    else
+                    {
+                        Debug.WriteLine("La foto del canino está vacía o es nula.");
+                    }
+                }
+                else
+                {
+                    Debug.WriteLine("No se encontraron datos del canino."); // Mensaje de depuración
+                    await DisplayAlert("Error", "No se encontraron datos del canino.", "OK");
+                }
             }
             catch (Exception ex)
             {
-                // Manejar cualquier excepción que ocurra al cerrar sesión
-                Debug.WriteLine($"Error al cerrar sesión: {ex.Message}");
+                Debug.WriteLine($"Ocurrió un problema: {ex.Message}"); // Mensaje de depuración
+                await DisplayAlert("Error", $"Ocurrió un problema: {ex.Message}", "OK");
             }
         }
 
-        /* private async void CargarDatosCanino() 
-         {
-             try
-             {
-                 //consumimos el api para obtener el id del canino
-                 var canino = await ApiService.GetCaninos(1);
-                 if (canino != null)
-                 {
-                     //asignamos los datos a los controles
-                     NombreCanino.Text = canino.Nombre;
-                     EdadCanino.Text = $"Edad: {canino.Edad}";
-                     RazaCanino.Text = canino.Raza;
-                     PesoCanino.Text = $"Peso: {canino.Peso}";
-                     FotoCanino.Source = canino.Foto;
-                 }
-                 else
-                 {
-                     await DisplayAlert("Error", "No se encontraros datos del canino.", "OK");
+        private async void CheckForNotifications()
+        {
+            var tieneNotificacion = await _apiService.CheckForNotificationsAsync();
+            NotificationDot.IsVisible = tieneNotificacion;
+        }
 
-                 }
+        private async void OnBellIconTapped(object sender, EventArgs e)
+        {
+            var notificacion = await _apiService.GetLatestNotificationAsync();
+            if (notificacion != null)
+            {
+                await Navigation.PushAsync(new NotificacionPage(notificacion.Mensaje, notificacion.NumeroPaseador, notificacion.IdNotificacion));
+            }
+        }
 
-             }
-             catch (Exception ex)
-             {
-                 await DisplayAlert("Error", $"Ocurrió un problema: {ex.Message}", "OK");
-             }
-         }*/
         private async void OnMenuClicked(object sender, EventArgs e)
         {
             // Navegar a la página de menú
@@ -85,6 +100,7 @@ namespace Pagina1.Vista
             Application.Current.MainPage = new NavigationPage(new LoginPage());
             return true; // Indicar que el evento del botón de retroceso ha sido manejado
         }
+
         private async void OnRegistrarMascotaClicked(object sender, EventArgs e)
         {
             await Navigation.PushAsync(new RegistroMascotaPage());
@@ -97,14 +113,9 @@ namespace Pagina1.Vista
 
         private async void OnGPSClicked(object sender, EventArgs e)
         {
-                 
-           //navegamos a la interfaz del gps
-           await Navigation.PushAsync(new GPSPage());
-              
-            
+            // Navegamos a la interfaz del GPS
+            await Navigation.PushAsync(new GPSPage());
         }
-
-       
 
         private async void OnEjerciciosClicked(object sender, EventArgs e)
         {
@@ -120,7 +131,6 @@ namespace Pagina1.Vista
         {
             await Navigation.PushAsync(new RecetasPage());
         }
-
 
         private async void OnLogoutClicked(object sender, EventArgs e)
         {

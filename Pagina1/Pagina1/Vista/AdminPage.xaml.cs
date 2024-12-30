@@ -33,12 +33,7 @@ namespace Pagina1.Vista
             SeleccionTipoUsuario.SelectedIndexChanged += OnTipoUsuarioSeleccionado;
         }
 
-        private async void OnRegistrarPaseadorClicked(object sender, EventArgs e)
-        {
-            // Navega a la página de registro de paseadores
-            await Navigation.PushAsync(new RegistroPaseadorPage());
-        }
-
+      
         private async void CargarDatosIniciales()
         {
             try
@@ -81,6 +76,12 @@ namespace Pagina1.Vista
                     StackPaseadores.IsVisible = true;
                     break;
             }
+        }
+
+        private async void ImageButton_Clicked(object sender, EventArgs e)
+        {
+            // Navegar a la página de menú
+           await Navigation.PushAsync(new MenuAdminPage());
         }
     }
 

@@ -1,10 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using Xamarin.Forms;
 using Xamarin.Essentials;
-using System.Threading.Tasks;
-using Pagina1.Vista;
 using Pagina1.Servicios;
-using System.Diagnostics;
 
 namespace Pagina1.Vista
 {
@@ -16,11 +14,10 @@ namespace Pagina1.Vista
         public LoginPage()
         {
             InitializeComponent();
-            _loginService = new LoginService();  // Para login
-            _authService = new AuthService();    // Para registro
+            _loginService = new LoginService();  // Para el inicio de sesión
+            _authService = new AuthService();    // Para el registro de usuarios
         }
 
-        // Acción cuando se presiona el botón de Login
         private async void OnLoginClicked(object sender, EventArgs e)
         {
             string nombreUsuario = usernameEntry.Text;
@@ -35,26 +32,49 @@ namespace Pagina1.Vista
             try
             {
                 var response = await _loginService.LoginUsuarioAsync(nombreUsuario, contrasena);
+                Debug.WriteLine($"Response completo: {System.Text.Json.JsonSerializer.Serialize(response)}");
 
                 if (response.Mensaje == "Login exitoso")
                 {
                     var rol = response.Rol;
                     var cedulaDueno = response.CedulaDueno;
+                    var celularPaseador = response.CelularPaseador;  // Usar la propiedad correcta
+                    var nombrePaseador = response.NombrePaseador;
                     var esPrimeraVez = response.EsPrimeraVez;
 
                     // Agregar estas líneas de verificación
                     Debug.WriteLine($"Cédula recibida del servidor: {cedulaDueno}");
+                    Debug.WriteLine($"Número de teléfono recibido del servidor: {(celularPaseador ?? "null")}");  // Verificar el número del paseador
 
                     if (!string.IsNullOrEmpty(cedulaDueno))
                     {
                         Preferences.Set("CedulaDueno", cedulaDueno);
                         // Verificar inmediatamente si se guardó
-                        var verificacion = Preferences.Get("CedulaDueno", "no encontrada");
-                        Debug.WriteLine($"Verificación de cédula guardada: {verificacion}");
+                        var verificacionCedula = Preferences.Get("CedulaDueno", "no encontrada");
+                        Debug.WriteLine($"Verificación de cédula guardada: {verificacionCedula}");
                     }
                     else
                     {
                         Debug.WriteLine("Cédula vacía, no se guardará en las preferencias");
+                    }
+
+                    if (rol == "Paseador")
+                    {
+                        if (!string.IsNullOrEmpty(celularPaseador) && !string.IsNullOrEmpty(nombrePaseador))
+                        {
+                            Preferences.Set("CelularPaseador", celularPaseador);
+                            Preferences.Set("NombrePaseador", nombrePaseador);
+
+                            // Verificar inmediatamente
+                            var verificacion = Preferences.Get("CelularPaseador", "no guardado");
+                            var verificacionNombre = Preferences.Get("NombrePaseador", "no guardado");
+                            Debug.WriteLine($"Número del paseador guardado: {verificacion}");
+                            Debug.WriteLine($"Nombre del paseador guardado: {verificacionNombre}");
+                        }
+                        else
+                        {
+                            Debug.WriteLine("Número o el Nombre vacio, no se guardará en las preferencias");
+                        }
                     }
 
                     // Crear la página de destino según el rol
@@ -103,24 +123,7 @@ namespace Pagina1.Vista
         }
         private async void OnRegisterClicked(object sender, EventArgs e)
         {
-            // Navigate to the RegisterPage
             await Navigation.PushAsync(new RegisterPage());
-        }
-
-        // Método para verificar si es la primera vez que inicia sesión
-        private async Task<bool> VerificarPrimeraVez(string nombreUsuario)
-        {
-            try
-            {
-                var esPrimeraVez = await _loginService.EsPrimeraVez(nombreUsuario);
-                return esPrimeraVez;
-            }
-            catch (Exception ex)
-            {
-                statusLabel.TextColor = Color.Red;
-                statusLabel.Text = "Error al verificar si es la primera vez: " + ex.Message;
-                return false;
-            }
         }
     }
 }

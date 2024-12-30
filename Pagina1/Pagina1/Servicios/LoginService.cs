@@ -11,6 +11,9 @@ namespace Pagina1.Servicios
         public string Mensaje { get; set; }
         public string Rol { get; set; }
         public string CedulaDueno { get; set; }
+        public string CelularPaseador { get; set; }
+
+        public string NombrePaseador { get; set; }
         public bool EsPrimeraVez { get; set; }
         public DateTime? UltimoInicioSesion { get; set; }
     }
@@ -59,7 +62,9 @@ namespace Pagina1.Servicios
                     {
                         Mensaje = "Error al iniciar sesión",
                         Rol = "",
-                        CedulaDueno = string.Empty
+                        CedulaDueno = string.Empty,
+                        CelularPaseador = string.Empty,
+                        NombrePaseador = string.Empty
                     };
                 }
             }
@@ -69,7 +74,9 @@ namespace Pagina1.Servicios
                 {
                     Mensaje = $"Error de conexión: {ex.Message}",
                     Rol = "",
-                    CedulaDueno = string.Empty
+                    CedulaDueno = string.Empty,
+                    CelularPaseador = string.Empty,
+                    NombrePaseador = string.Empty
                 };
             }
         }

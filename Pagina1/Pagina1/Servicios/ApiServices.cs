@@ -11,6 +11,7 @@ using System.Text.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using Xamarin.Essentials;
 using Pagina1.Dtos;
+using TuProyecto.Models;
 
 namespace Pagina1.Servicios
 {
@@ -27,17 +28,22 @@ namespace Pagina1.Servicios
         }
 
         // Métodos para Caninos
-        public async Task<List<Canino>> GetCaninesAsync()
+        public async Task<List<CaninoDto>> GetCaninesAsync()
         {
             try
             {
-                var response = await _client.GetAsync($"{_baseUrl}caninos");
+                var response = await _client.GetAsync($"{_baseUrl}");
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<List<Canino>>(json);
+                    Debug.WriteLine($"Response JSON: {json}"); // Mensaje de depuración
+                    return JsonConvert.DeserializeObject<List<CaninoDto>>(json);
                 }
-                return null;
+                else
+                {
+                    Debug.WriteLine($"Error: {response.ReasonPhrase}"); // Mensaje de depuración
+                    return null;
+                }
             }
             catch (Exception ex)
             {
@@ -79,6 +85,32 @@ namespace Pagina1.Servicios
             }
         }
 
+        //metodo para obtener los caninos por medio de la cedula del dueño
+        // Método para obtener los caninos por cédula del dueño
+        public async Task<List<CaninoDto>> GetCaninosByCedulaDuenoAsync(string cedulaDueno)
+        {
+            try
+            {
+                var response = await _client.GetAsync($"{_baseUrl}/caninosPorCedula?cedulaDueno={cedulaDueno}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    Debug.WriteLine($"Response JSON: {json}"); // Mensaje de depuración
+                    return JsonConvert.DeserializeObject<List<CaninoDto>>(json);
+                }
+                else
+                {
+                    Debug.WriteLine($"Error: {response.ReasonPhrase}"); // Mensaje de depuración
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error: {ex.Message}");
+                throw;
+            }
+        }
+
 
         public async Task<string> RegistrarCaninoAsync(CaninoRequest caninoRequest)
         {
@@ -114,7 +146,83 @@ namespace Pagina1.Servicios
                 return "Exception";
             }
         }
-    
+
+        //metodos para notificaciones 
+        public async Task<(bool, string)> EnviarNotificacionAsync(int idCanino, string mensaje, string numeroPaseador)
+        {
+            var notificacionRequest = new
+            {
+                IdCanino = idCanino,
+                Mensaje = mensaje,
+                NumeroPaseador = numeroPaseador
+            };
+
+            var json = JsonConvert.SerializeObject(notificacionRequest);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            try
+            {
+                var response = await _client.PostAsync("http://10.0.2.2:5138/api/Notificacion/enviar", content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    // Capturar el contenido de la respuesta de error
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    return (false, $"Error al enviar la notificación: {responseContent}");
+                }
+
+                return (true, "Notificación enviada exitosamente.");
+            }
+            catch (HttpRequestException httpEx)
+            {
+                // Capturar errores de solicitud HTTP
+                return (false, $"Error de solicitud HTTP: {httpEx.Message}");
+            }
+            catch (Exception ex)
+            {
+                // Capturar cualquier otro tipo de error
+                return (false, $"Error: {ex.Message}");
+            }
+        }
+
+
+        public async Task<bool> CheckForNotificationsAsync()
+        {
+            var cedulaDueno = Preferences.Get("CedulaDueno", string.Empty);
+            var response = await _client.GetAsync($"http://10.0.2.2:5138/api/Notificacion/check?cedulaDueno={cedulaDueno}");
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<int>(json) > 0;
+            }
+            return false;
+        }
+
+        public async Task<NotificacionDto> GetLatestNotificationAsync()
+        {
+            var cedulaDueno = Preferences.Get("CedulaDueno", string.Empty);
+            var response = await _client.GetAsync($"http://10.0.2.2:5138/api/Notificacion/ultima?cedulaDueno={cedulaDueno}");
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<NotificacionDto>(json);
+            }
+            return null;
+        }
+
+        public async Task MarcarNotificacionComoLeidaAsync(int idNotificacion)
+        {
+            var content = new StringContent(JsonConvert.SerializeObject(new
+            {
+                idNotificacion = idNotificacion
+            }), Encoding.UTF8, "application/json");
+
+            var response = await _client.PutAsync($"http://10.0.2.2:5138/api/Notificacion/marcarComoLeida", content);
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Error al marcar la notificación como leída: {response.ReasonPhrase}");
+            }
+        }
 
 
 

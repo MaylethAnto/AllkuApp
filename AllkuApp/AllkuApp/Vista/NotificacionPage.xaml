@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllkuApp.Vista.NotificacionPage"
+             Title="Notificacion"
+             BackgroundColor="White">
+    <Grid>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="100"/>
+                <!-- Altura ajustada para el header -->
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header con botón de atrás -->
+            <Grid Grid.Row="0" Padding="20,40,20,0">
+                <!-- Padding ajustado -->
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <ImageButton 
+                Grid.Column="0"
+                Source="back_arrow.png"
+                HeightRequest="24"
+                WidthRequest="24"
+                BackgroundColor="Transparent"
+                VerticalOptions="Center"
+                HorizontalOptions="Start"
+                Clicked="OnBackButtonClicked"/>
+            </Grid>
+
+            <!-- Contenido de la notificación -->
+            <ScrollView Grid.Row="1">
+                <StackLayout Padding="20">
+                    <!-- Notification Card -->
+                    <Frame BackgroundColor="#007AFF" 
+                       CornerRadius="10" 
+                       HasShadow="True"
+                       Padding="15"
+                       Margin="0,10">
+                        <StackLayout Spacing="15">
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Image Source="allkaapp_logo_white.png" 
+                                   HeightRequest="40" 
+                                   WidthRequest="40"
+                                   Grid.Column="0"/>
+
+                                <Label x:Name="NotificationMessage"
+                                   Grid.Column="1"
+                                   TextColor="White"
+                                   FontSize="16"/>
+                            </Grid>
+
+                            <BoxView HeightRequest="1" 
+                                 Color="White" 
+                                 Opacity="0.5"
+                                 Margin="0,5"/>
+
+                            <StackLayout>
+                                <Label x:Name="PaseadorNumber" 
+                                   FontSize="18" 
+                                   TextColor="White"
+                                   FontAttributes="Bold">
+                                    <Label.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnPaseadorNumberTapped" />
+                                    </Label.GestureRecognizers>
+                                </Label>
+                            </StackLayout>
+                        </StackLayout>
+                    </Frame>
+                </StackLayout>
+            </ScrollView>
+        </Grid>
+    </Grid>
+</ContentPage>

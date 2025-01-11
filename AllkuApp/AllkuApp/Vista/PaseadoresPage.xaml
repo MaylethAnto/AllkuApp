@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllkuApp.Vista.PaseadoresPage"
+             NavigationPage.HasNavigationBar="False">
+    <Grid BackgroundColor="White">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Padding="20,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Label Text="Paseador" 
+               Grid.Column="1" 
+               HorizontalOptions="Center" 
+               VerticalOptions="Center"
+               FontSize="18"
+               FontAttributes="Bold"/>
+
+            <ImageButton Source="menu_icon.png" 
+               HeightRequest="40" 
+               WidthRequest="40"
+               Grid.Column="2"
+               VerticalOptions="Center"
+               Clicked="OnMenuPaseador_Clicked"/>
+        </Grid>
+
+        <StackLayout Grid.Row="1" Padding="20">
+            <Label Text="Seleccione un can para pasear"
+               FontSize="20"
+               HorizontalOptions="Center"
+               Margin="0,20,0,20"/>
+            <ListView x:Name="CanesListView"
+                  ItemSelected="OnCanSelected">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <StackLayout Orientation="Horizontal" Padding="10">
+                                <Frame WidthRequest="100" HeightRequest="100" CornerRadius="50" IsClippedToBounds="True" Padding="0" HorizontalOptions="Start">
+                                    <Image Source="{Binding FotoCaninoImageSource}" Aspect="AspectFill"/>
+                                </Frame>
+                                <StackLayout Orientation="Vertical" Padding="10,0,0,0">
+                                    <Label Text="{Binding NombreCanino}" FontSize="16"/>
+                                    <Label Text="{Binding RazaCanino}" FontSize="14" TextColor="Gray"/>
+                                </StackLayout>
+                            </StackLayout>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <Button Text="Enviar Notificación"
+                Clicked="OnEnviarNotificacionClicked"
+                VerticalOptions="End"
+                HorizontalOptions="Center"/>
+        </StackLayout>
+    </Grid>
+</ContentPage>

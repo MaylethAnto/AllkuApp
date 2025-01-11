@@ -1,0 +1,129 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllkuApp.Vista.MenuPage"
+             BackgroundColor="White"
+             NavigationPage.HasNavigationBar="False">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="100"/>
+            <!-- Altura ajustada para el header -->
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header con botón de atrás -->
+        <Grid Grid.Row="0" Padding="20,40,20,0">
+            <!-- Padding ajustado -->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <ImageButton 
+                Grid.Column="0"
+                Source="back_arrow.png"
+                HeightRequest="24"
+                WidthRequest="24"
+                BackgroundColor="Transparent"
+                VerticalOptions="Center"
+                HorizontalOptions="Start"
+                Clicked="OnBackButtonClicked"/>
+        </Grid>
+
+        <!-- Contenido del menú -->
+        <ScrollView Grid.Row="1">
+            <StackLayout Padding="20">
+                <!-- Botón Agregar Mascota -->
+                <Frame HasShadow="False" BorderColor="Transparent" Padding="0" Margin="0,10">
+                    <Grid Padding="10" BackgroundColor="White" HorizontalOptions="FillAndExpand">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50"/>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Image Source="add_pet_icon.png" WidthRequest="50" HeightRequest="50" Grid.Column="0"/>
+                        <Label Text="Agregar Mascota" VerticalOptions="Center" HorizontalOptions="Start" Grid.Column="1"/>
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnAddPetClicked"/>
+                        </Grid.GestureRecognizers>
+                    </Grid>
+                </Frame>
+
+                <!-- Botón Perfil -->
+                <Frame HasShadow="False" BorderColor="Transparent" Padding="0" Margin="0,10">
+                    <Grid Padding="10" BackgroundColor="White" HorizontalOptions="FillAndExpand">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50"/>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Image Source="perfil_icon.png" WidthRequest="40" HeightRequest="40" Grid.Column="0"/>
+                        <Label Text="Perfil" VerticalOptions="Center" HorizontalOptions="Start" Grid.Column="1"/>
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnPerfilClicked"/>
+                        </Grid.GestureRecognizers>
+                    </Grid>
+                </Frame>
+
+                <!-- Botón Ejercicio -->
+                <Frame HasShadow="False" BorderColor="Transparent" Padding="0" Margin="0,10">
+                    <Grid Padding="10" BackgroundColor="White" HorizontalOptions="FillAndExpand">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50"/>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Image Source="ejercicio_icon.png" WidthRequest="40" HeightRequest="40" Grid.Column="0"/>
+                        <Label Text="Ejercicio" VerticalOptions="Center" HorizontalOptions="Start" Grid.Column="1"/>
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnEjerciciosClicked"/>
+                        </Grid.GestureRecognizers>
+                    </Grid>
+                </Frame>
+
+                <!-- Botón Dieta -->
+                <Frame HasShadow="False" BorderColor="Transparent" Padding="0" Margin="0,10">
+                    <Grid Padding="10" BackgroundColor="White" HorizontalOptions="FillAndExpand">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50"/>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Image Source="dieta_icon.png" WidthRequest="40" HeightRequest="40" Grid.Column="0"/>
+                        <Label Text="Dieta" VerticalOptions="Center" HorizontalOptions="Start" Grid.Column="1"/>
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnRecetasClicked"/>
+                        </Grid.GestureRecognizers>
+                    </Grid>
+                </Frame>
+
+                <!-- Botón GPS -->
+                <Frame HasShadow="False" BorderColor="Transparent" Padding="0" Margin="0,10">
+                    <Grid Padding="10" BackgroundColor="White" HorizontalOptions="FillAndExpand">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50"/>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Image Source="gps_icon.png" WidthRequest="40" HeightRequest="40" Grid.Column="0"/>
+                        <Label Text="GPS" VerticalOptions="Center" HorizontalOptions="Start" Grid.Column="1"/>
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnGPSClicked"/>
+                        </Grid.GestureRecognizers>
+                    </Grid>
+                </Frame>
+
+                <!-- Botón Cerrar Sesión -->
+                <Frame HasShadow="False" BorderColor="Transparent" Padding="0" Margin="0,10">
+                    <Grid Padding="10" BackgroundColor="White" HorizontalOptions="FillAndExpand">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50"/>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Image Source="logout_icon.png" WidthRequest="40" HeightRequest="40" Grid.Column="0"/>
+                        <Label Text="Cerrar Sesión" VerticalOptions="Center" HorizontalOptions="Start" Grid.Column="1"/>
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnLogoutClicked"/>
+                        </Grid.GestureRecognizers>
+                    </Grid>
+                </Frame>
+            </StackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllkuApp.Vista.EjerciciosPage"
+             Title="Ejercicio Canino"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="White">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Altura ajustada para el header -->
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header con botón de atrás -->
+        <Grid Grid.Row="0" Padding="20,40,20,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="24"/>
+                <!-- Ancho del botón -->
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="24"/>
+                <!-- Columna de balance -->
+            </Grid.ColumnDefinitions>
+
+            <ImageButton 
+                Grid.Column="0"
+                Source="back_arrow.png"
+                HeightRequest="24"
+                WidthRequest="24"
+                BackgroundColor="Transparent"
+                VerticalOptions="Center"
+                HorizontalOptions="Start"
+                Clicked="OnBackButtonClicked"/>
+
+            <Label 
+                Grid.Column="1"
+                Text="Ejercicio Canino" 
+                FontSize="20"
+                FontAttributes="Bold"
+                VerticalOptions="Center"
+                HorizontalOptions="Center"/>
+        </Grid>
+
+        <ScrollView Grid.Row="1">
+            <StackLayout Padding="20">
+                <!-- Fecha y Hora de Inicio -->
+                <Label Text="Fecha y Hora de Inicio" FontAttributes="Bold" TextColor="#666666" />
+                <StackLayout Orientation="Horizontal" Margin="0,0,0,15">
+                    <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent" HorizontalOptions="FillAndExpand">
+                        <DatePicker x:Name="FechaInicio" Format="dd/MM/yyyy" BackgroundColor="Transparent" />
+                    </Frame>
+                    <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent" HorizontalOptions="FillAndExpand" Margin="10,0,0,0">
+                        <TimePicker x:Name="HoraInicio" BackgroundColor="Transparent" />
+                    </Frame>
+                </StackLayout>
+
+                <!-- Fecha y Hora de Fin -->
+                <Label Text="Fecha y Hora de Fin" FontAttributes="Bold" TextColor="#666666" />
+                <StackLayout Orientation="Horizontal" Margin="0,0,0,15">
+                    <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent" HorizontalOptions="FillAndExpand">
+                        <DatePicker x:Name="FechaFin" Format="dd/MM/yyyy" BackgroundColor="Transparent" />
+                    </Frame>
+                    <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent" HorizontalOptions="FillAndExpand" Margin="10,0,0,0">
+                        <TimePicker x:Name="HoraFin" BackgroundColor="Transparent" />
+                    </Frame>
+                </StackLayout>
+
+                <!-- Botón Obtener Recorrido -->
+                <Button Text="Obtener Recorrido"
+                        Clicked="OnObtenerDistanciaClicked"
+                        BackgroundColor="#0033CC"
+                        TextColor="White"
+                        CornerRadius="10"
+                        FontAttributes="Bold"
+                        HorizontalOptions="FillAndExpand"
+                        HeightRequest="50"
+                        Margin="0,0,0,20" />
+
+                <!-- ListView para mostrar el recorrido -->
+                <ListView x:Name="DistanciaListView">
+                    <ListView.Header>
+                        <StackLayout Orientation="Horizontal">
+                            <Label Text="Fecha Inicio" HorizontalOptions="StartAndExpand" FontAttributes="Bold" TextColor="#666666" />
+                            <Label Text="Fecha Fin" HorizontalOptions="EndAndExpand" FontAttributes="Bold" TextColor="#666666" />
+                            <Label Text="Distancia KM" HorizontalOptions="EndAndExpand" FontAttributes="Bold" TextColor="#666666" />
+                        </StackLayout>
+                    </ListView.Header>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <ViewCell>
+                                <StackLayout Orientation="Horizontal">
+                                    <Label Text="{Binding FechaInicio}" HorizontalOptions="StartAndExpand" TextColor="#333333" />
+                                    <Label Text="{Binding FechaFin}" HorizontalOptions="EndAndExpand" TextColor="#333333" />
+                                    <Label Text="{Binding DistanciaTotal}" HorizontalOptions="EndAndExpand" TextColor="#333333" />
+                                </StackLayout>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:AllkuApp.Vista"
+             x:Class="AllkuApp.Vista.RecetaFormulario"
+             NavigationPage.HasNavigationBar="False"
+             Title="Formulario de Receta"
+             BackgroundColor="#f5f5f5">
+
+    <StackLayout Padding="20,40,10,0">
+        <!-- Título de la página -->
+        <Label Text="Formulario de Receta"
+               FontSize="25"
+               FontAttributes="Bold"
+               TextColor="#333"
+               HorizontalOptions="Center"
+               Margin="0, 5, 0, 20"/>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="30" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="30" />
+            </Grid.ColumnDefinitions>
+
+            <ImageButton 
+                Grid.Column="0"
+                Source="back_arrow.png"
+                HeightRequest="25"
+                WidthRequest="25"
+                BackgroundColor="Transparent"
+                VerticalOptions="Start"
+                HorizontalOptions="Start"
+                Clicked="OnBackButtonClicked" />
+
+            <Frame Grid.Column="1" BackgroundColor="White" CornerRadius="15" Padding="15" HasShadow="True">
+                <StackLayout Spacing="10">
+                    <Label Text="Nombre de la Receta" 
+                           FontSize="Medium" 
+                           TextColor="#666" />
+                    <Frame BackgroundColor="#eeeeee" CornerRadius="10" Padding="5">
+                        <Entry x:Name="NombreRecetaEntry" Placeholder="Ingrese el nombre de la receta" BackgroundColor="Transparent" />
+                    </Frame>
+
+                    <Label Text="Descripción de la Receta" 
+                           FontSize="Medium" 
+                           TextColor="#666" />
+                    <Frame BackgroundColor="#eeeeee" CornerRadius="10" Padding="5">
+                        <Editor x:Name="DescripcionRecetaEditor" Placeholder="Ingrese la descripción de la receta" HeightRequest="80" BackgroundColor="Transparent" />
+                    </Frame>
+
+                    <Label Text="Foto de la Receta" 
+                           FontSize="Medium" 
+                           TextColor="#666" />
+                    <StackLayout Orientation="Horizontal" Spacing="10">
+                        <Button Text="Seleccionar Foto" Clicked="OnSeleccionarFotoClicked" BackgroundColor="#2196F3" TextColor="White" CornerRadius="20" />
+                        <Image x:Name="FotoRecetaImage" HeightRequest="100" WidthRequest="100" VerticalOptions="Center" Aspect="AspectFill" />
+                    </StackLayout>
+                    <Entry x:Name="FotoRecetaEntry" Placeholder="Ingrese la foto en formato Base64" IsVisible="False" />
+
+                    <Label Text="ID Canino" 
+                           FontSize="Medium" 
+                           TextColor="#666" />
+                    <Frame BackgroundColor="#eeeeee" CornerRadius="10" Padding="5">
+                        <Entry x:Name="IdCaninoEntry" Placeholder="Ingrese el ID del canino" Keyboard="Numeric" BackgroundColor="Transparent" />
+                    </Frame>
+
+                    <Grid ColumnSpacing="10" Padding="0,20,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Button Text="Guardar " Clicked="OnGuardarRecetaClicked" 
+                                BackgroundColor="#2196F3" 
+                                TextColor="White" 
+                                CornerRadius="25" 
+                                WidthRequest="150" 
+                                HeightRequest="50" 
+                                HorizontalOptions="Start" 
+                                Grid.Column="0" />
+
+                        <Button Text="Cancelar" Clicked="OnCancelarClicked"
+                                BackgroundColor="#F44336"
+                                TextColor="White"
+                                CornerRadius="25"
+                                WidthRequest="150" 
+                                HeightRequest="50"
+                                HorizontalOptions="End" 
+                                Grid.Column="1" />
+                    </Grid>
+                </StackLayout>
+            </Frame>
+        </Grid>
+    </StackLayout>
+</ContentPage>

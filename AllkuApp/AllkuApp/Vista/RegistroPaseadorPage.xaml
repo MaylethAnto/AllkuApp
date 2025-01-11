@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllkuApp.Vista.RegistroPaseadorPage"
+             Title="Registrar Paseador"
+             NavigationPage.HasNavigationBar="False">
+
+    <Grid>
+        <!-- Fondo rojo con huellas -->
+        <Grid BackgroundColor="#FF3B3B">
+            <Image Source="paw_pattern.png"
+                   Aspect="AspectFit"
+                   Scale="1.7"
+                   Opacity="0.1"
+                   VerticalOptions="FillAndExpand"
+                   HorizontalOptions="FillAndExpand" />
+        </Grid>
+
+        <!-- Contenido principal -->
+        <ScrollView>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="180"/>
+                    <!-- Aumentado para dar más espacio al header -->
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Header con botón de atrás -->
+                <Grid Grid.Row="0" Padding="20,40,20,0">
+                    <!-- Ajustado el padding -->
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <ImageButton 
+                        Grid.Column="0"
+                        Source="back_arrow_white.png"
+                        HeightRequest="24"
+                        WidthRequest="24"
+                        BackgroundColor="Transparent"
+                        VerticalOptions="Center"
+                        HorizontalOptions="Start"
+                        Clicked="OnBackButtonClicked"/>
+                </Grid>
+                <!-- Panel blanco curvo -->
+                <Frame Grid.Row="1"
+                       BackgroundColor="White"
+                       CornerRadius="30"
+                       HasShadow="False"
+                       Padding="20,30,20,20"
+                       Margin="0,-30,0,0">
+
+                    <StackLayout Spacing="15">
+                        <Label Text="Registrar Paseador"
+                               FontSize="24"
+                               TextColor="Black"
+                               FontAttributes="Bold"
+                               HorizontalOptions="Center"
+                               Margin="0,0,0,5"/>
+
+                        <!-- Campos del formulario -->
+                        <StackLayout Spacing="10">
+                            <!-- Cédula -->
+                            <Label Text="Cédula (10 dígitos)" FontAttributes="Bold" TextColor="#666666" />
+                            <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent">
+                                <Entry x:Name="CedulaEntry" Placeholder="Ingrese la cédula" Keyboard="Numeric" MaxLength="10" BackgroundColor="Transparent" TextColor="Black"/>
+                            </Frame>
+
+                            <!-- Nombre completo -->
+                            <Label Text="Nombre completo" FontAttributes="Bold" TextColor="#666666" />
+                            <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent">
+                                <Entry x:Name="NombreEntry" Placeholder="Ingrese el nombre completo" BackgroundColor="Transparent" TextColor="Black"/>
+                            </Frame>
+
+                            <!-- Usuario -->
+                            <Label Text="Usuario" FontAttributes="Bold" TextColor="#666666" />
+                            <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent">
+                                <Entry x:Name="UsuarioEntry" Placeholder="Ingrese el usuario" BackgroundColor="Transparent" TextColor="Black"/>
+                            </Frame>
+
+                            <!-- Correo electrónico -->
+                            <Label Text="Correo electrónico" FontAttributes="Bold" TextColor="#666666" />
+                            <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent">
+                                <Entry x:Name="CorreoEntry" Placeholder="Ingrese el correo electrónico" Keyboard="Email" BackgroundColor="Transparent" TextColor="Black"/>
+                            </Frame>
+
+                            <!-- Contraseña -->
+                            <Label Text="Contraseña" FontAttributes="Bold" TextColor="#666666" />
+                            <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent">
+                                <Entry x:Name="ContraseñaEntry" Placeholder="Ingrese la contraseña" IsPassword="True" BackgroundColor="Transparent" TextColor="Black"/>
+                            </Frame>
+
+                            <!-- Confirmar contraseña -->
+                            <Label Text="Confirmar contraseña" FontAttributes="Bold" TextColor="#666666" />
+                            <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent">
+                                <Entry x:Name="ConfirmarContraseñaEntry" Placeholder="Confirme la contraseña" IsPassword="True" BackgroundColor="Transparent" TextColor="Black"/>
+                            </Frame>
+
+                            <!-- Dirección -->
+                            <Label Text="Dirección" FontAttributes="Bold" TextColor="#666666" />
+                            <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent">
+                                <Entry x:Name="DireccionEntry" Placeholder="Ingrese la dirección" BackgroundColor="Transparent" TextColor="Black"/>
+                            </Frame>
+
+                            <!-- Número celular -->
+                            <Label Text="Número celular (10 dígitos)" FontAttributes="Bold" TextColor="#666666" />
+                            <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent">
+                                <Entry x:Name="CelularEntry" Placeholder="Ingrese el número celular" Keyboard="Numeric" MaxLength="10" BackgroundColor="Transparent" TextColor="Black"/>
+                            </Frame>
+                        </StackLayout>
+
+                        <!-- Botón de Registro -->
+                        <Button Text="REGISTRAR PASEADOR"
+                                Clicked="OnRegisterButtonClicked"
+                                BackgroundColor="#0033CC"
+                                TextColor="White"
+                                CornerRadius="10"
+                                FontAttributes="Bold"
+                                HorizontalOptions="FillAndExpand"
+                                HeightRequest="50" />
+                    </StackLayout>
+                </Frame>
+            </Grid>
+        </ScrollView>
+    </Grid>
+</ContentPage>

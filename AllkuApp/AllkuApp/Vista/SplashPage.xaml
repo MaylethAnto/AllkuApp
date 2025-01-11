@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllkuApp.Vista.SplashPage"
+             BackgroundColor="White"
+             NavigationPage.HasNavigationBar="False">
+
+    <!-- Fondo con degradado -->
+    <ContentPage.Background>
+        <LinearGradientBrush EndPoint="0,1">
+            <!-- Degradado vertical -->
+            <!-- Color inicial (rojo) -->
+            <GradientStop Color="#ff0000" Offset="0.0" />
+            <!-- Color blanco más prominente -->
+            <GradientStop Color="#ffffff" Offset="0.4" />
+            <GradientStop Color="#ffffff" Offset="0.7" />
+            <!-- Color final (azul) -->
+            <GradientStop Color="#0033a0" Offset="1.0" />
+        </LinearGradientBrush>
+    </ContentPage.Background>
+
+    <Grid>
+        <!--Contenido Principal-->
+        <StackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="20">
+            <!--Logo-->
+            <Image Source="LogoImage.png"
+                   HeightRequest="400"
+                   WidthRequest="400"
+                   Opacity="0"
+                   x:Name="LogoImage"/>
+        </StackLayout>
+
+        <!-- Footer -->
+        <Label Text="By ITQ, Mayleth Conforme y Camila Landy"
+               FontSize="12"
+               TextColor="#ffff"
+               HorizontalTextAlignment="Center"
+               VerticalOptions="End"
+               Margin="0,0,0,20"
+               Opacity="0"
+               x:Name="FooterLabel"/>
+    </Grid>
+</ContentPage>

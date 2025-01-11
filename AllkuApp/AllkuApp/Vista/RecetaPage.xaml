@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:AllkuApp.Vista"
+             x:Class="AllkuApp.Vista.RecetaPage"
+             Title="Detalles de las Recetas">
+
+    <ContentPage.Content>
+        <StackLayout Padding="10">
+            <ListView x:Name="RecetasListView" HasUnevenRows="True">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <StackLayout Padding="5">
+                                <Label Text="{Binding nombre_receta}" FontSize="Medium" />
+                                <Label Text="{Binding descripcion_receta}" FontSize="Small" />
+                                <Image Source="{Binding foto_receta}" HeightRequest="50" WidthRequest="50" />
+                                <Label Text="{Binding id_canino}" FontSize="Small" />
+                            </StackLayout>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

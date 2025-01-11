@@ -1,0 +1,166 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllkuApp.Vista.RegistroMascotaPage"
+             Title="Registro de Mascota"
+             NavigationPage.HasNavigationBar="False">
+
+    <Grid>
+        <!-- Fondo rojo con huellas -->
+        <Grid BackgroundColor="#FF3B3B">
+            <Image Source="paw_pattern.png"
+                   Aspect="AspectFit"
+                   Scale="1.7"
+                   Opacity="0.1"
+                   VerticalOptions="FillAndExpand"
+                   HorizontalOptions="FillAndExpand" />
+        </Grid>
+
+        <!-- Contenido principal -->
+        <ScrollView>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="180"/>
+                    <!-- Aumentado para dar más espacio al header -->
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Header con botón de atrás -->
+                <Grid Grid.Row="0" Padding="20,40,20,0">
+                    <!-- Ajustado el padding -->
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <ImageButton 
+                        Grid.Column="0"
+                        Source="back_arrow_white.png"
+                        HeightRequest="24"
+                        WidthRequest="24"
+                        BackgroundColor="Transparent"
+                        VerticalOptions="Center"
+                        HorizontalOptions="Start"
+                        Clicked="OnBackButtonClicked"/>
+                </Grid>
+                <!-- Panel blanco curvo -->
+                <Frame Grid.Row="1"
+                       BackgroundColor="White"
+                       CornerRadius="30"
+                       HasShadow="False"
+                       Padding="20,30,20,20"
+                       Margin="0,-30,0,0">
+
+                    <StackLayout Spacing="15">
+                        <Label Text="Agrega a tu Can!"
+                               FontSize="24"
+                               TextColor="Black"
+                               FontAttributes="Bold"
+                               HorizontalOptions="Center"
+                               Margin="0,0,0,5"/>
+
+                        <!-- Campos del formulario -->
+                        <StackLayout Spacing="10">
+                            <!-- Nombre de la mascota -->
+                            <Label Text="Nombre de la mascota" FontAttributes="Bold" TextColor="#666666" />
+                            <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent">
+                                <Entry x:Name="NombreEntry" Placeholder="Ingresa el nombre de la mascota" BackgroundColor="Transparent" TextColor="Black"/>
+                            </Frame>
+
+                            <!-- Edad de la mascota -->
+                            <Label Text="Edad de la mascota (años)" FontAttributes="Bold" TextColor="#666666" />
+                            <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent">
+                                <Picker x:Name="EdadPicker" Title="Seleccione la Edad de su mascota" BackgroundColor="Transparent" TextColor="Black">
+                                    <Picker.ItemsSource>
+                                        <x:Array Type="{x:Type x:Int32}">
+                                            <x:Int32>1</x:Int32>
+                                            <x:Int32>2</x:Int32>
+                                            <x:Int32>3</x:Int32>
+                                            <x:Int32>4</x:Int32>
+                                            <x:Int32>5</x:Int32>
+                                            <x:Int32>6</x:Int32>
+                                            <x:Int32>7</x:Int32>
+                                            <x:Int32>8</x:Int32>
+                                            <x:Int32>9</x:Int32>
+                                            <x:Int32>10</x:Int32>
+                                            <x:Int32>11</x:Int32>
+                                            <x:Int32>12</x:Int32>
+                                            <x:Int32>13</x:Int32>
+                                            <x:Int32>14</x:Int32>
+                                            <x:Int32>15</x:Int32>
+                                            <x:Int32>16</x:Int32>
+                                            <x:Int32>17</x:Int32>
+                                            <x:Int32>18</x:Int32>
+                                            <x:Int32>19</x:Int32>
+                                            <x:Int32>20</x:Int32>
+                                            <x:Int32>21</x:Int32>
+                                            <x:Int32>22</x:Int32>
+                                            <x:Int32>23</x:Int32>
+                                            <x:Int32>24</x:Int32>
+                                            <x:Int32>25</x:Int32>
+                                        </x:Array>
+                                    </Picker.ItemsSource>
+                                </Picker>
+                            </Frame>
+
+                            <!-- Selector de raza -->
+                            <Label Text="Raza de la mascota" FontAttributes="Bold" TextColor="#666666" />
+                            <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent">
+                                <Picker x:Name="RazaPicker" Title="Selecciona la raza de su mascota" BackgroundColor="Transparent" TextColor="Black">
+                                    <Picker.ItemsSource>
+                                        <x:Array Type="{x:Type x:String}">
+                                            <x:String>Akita Americano</x:String>
+                                            <x:String>Labrador</x:String>
+                                            <x:String>Golden Retriever</x:String>
+                                            <x:String>Bulldog</x:String>
+                                            <x:String>Chihuahua</x:String>
+                                            <x:String>Pastor Alemán</x:String>
+                                            <x:String>Poodle</x:String>
+                                            <x:String>Pitbull</x:String>
+                                            <x:String>Beagle</x:String>
+                                            <x:String>Boxer</x:String>
+                                            <x:String>Rottweiler</x:String>
+                                            <x:String>Husky Siberiano</x:String>
+                                        </x:Array>
+                                    </Picker.ItemsSource>
+                                </Picker>
+                            </Frame>
+
+                            <!-- Peso de la mascota -->
+                            <Label Text="Peso de la mascota (kg)" FontAttributes="Bold" TextColor="#666666" />
+                            <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent">
+                                <Entry x:Name="PesoEntry" Placeholder="Ingresa el peso de la mascota" Keyboard="Numeric" BackgroundColor="Transparent" TextColor="Black"/>
+                            </Frame>
+
+                            <!-- Foto de la mascota -->
+                            <Label Text="Foto Perfil Mascota" FontAttributes="Bold" TextColor="#666666" />
+                            <Button Text="Seleccionar Foto" Clicked="OnSeleccionarFotoClicked" BackgroundColor="#F2F2F2" TextColor="#666666"/>
+                            <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent" HeightRequest="200" WidthRequest="200">
+                                <Image x:Name="FotoImagen" Aspect="AspectFill"/>
+                            </Frame>
+                        </StackLayout>
+
+                        <!-- Botones de acción -->
+                        <Button Text="Guardar"
+                                Clicked="OnRegisterButtonClicked"
+                                BackgroundColor="#0033CC"
+                                TextColor="White"
+                                CornerRadius="10"
+                                FontAttributes="Bold"
+                                HorizontalOptions="FillAndExpand"
+                                HeightRequest="50" />
+
+                        <Button Text="Cancelar"
+                                Clicked="OnCancelarClicked"
+                                BackgroundColor="#FF3B3B"
+                                TextColor="White"
+                                CornerRadius="10"
+                                FontAttributes="Bold"
+                                HorizontalOptions="FillAndExpand"
+                                HeightRequest="50" />
+                    </StackLayout>
+                </Frame>
+            </Grid>
+        </ScrollView>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,158 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllkuApp.Vista.PerfilPage"
+             BackgroundColor="White"
+             NavigationPage.HasNavigationBar="False">
+    <ContentPage.Content>
+        <StackLayout Padding="20,40,20,20">
+            <!-- Header con botón de atrás -->
+            <Grid Grid.Row="0" Padding="20,40,20,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="24"/>
+                    <!-- Ancho del botón -->
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="24"/>
+                    <!-- Columna de balance -->
+                </Grid.ColumnDefinitions>
+
+                <ImageButton 
+                    Grid.Column="0"
+                    Source="back_arrow.png"
+                    HeightRequest="24"
+                    WidthRequest="24"
+                    BackgroundColor="Transparent"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Start"
+                    Clicked="OnBackButtonClicked"/>
+
+                <Label 
+                    Grid.Column="1"
+                    Text="Perfil" 
+                    FontSize="20"
+                    FontAttributes="Bold"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Center"/>
+            </Grid>
+
+            <!-- Profile Image -->
+            <Frame 
+                CornerRadius="50"
+                HeightRequest="100"
+                WidthRequest="100"
+                Padding="0"
+                IsClippedToBounds="True"
+                BackgroundColor="#F5F5F5"
+                HorizontalOptions="Center"
+                Margin="0,0,0,30">
+                <Image 
+                    x:Name="FotoCanino"
+                    Source="default_dog_profile.png"
+                    Aspect="AspectFill"/>
+            </Frame>
+
+            <Button 
+                Text="Cambiar Foto" 
+                Clicked="OnCambiarFotoClicked"
+                BackgroundColor="Transparent"
+                TextColor="#0066FF"
+                Margin="0,0,0,20"/>
+
+            <!-- Form Fields -->
+            <Label 
+                Text="EDAD" 
+                TextColor="#666666"
+                FontSize="12"
+                Margin="5,0,0,5"/>
+            <Frame 
+                Padding="15,0"
+                CornerRadius="10"
+                HasShadow="False"
+                BackgroundColor="#F5F5F5">
+                <Picker 
+                    x:Name="EdadCaninoPicker"
+                    Title="Elegir edad..."
+                    TextColor="Black"
+                    TitleColor="#999999">
+                    <Picker.ItemsSource>
+                        <x:Array Type="{x:Type x:Int32}">
+                            <x:Int32>1</x:Int32>
+                            <x:Int32>2</x:Int32>
+                            <x:Int32>3</x:Int32>
+                            <x:Int32>4</x:Int32>
+                            <x:Int32>5</x:Int32>
+                            <x:Int32>6</x:Int32>
+                            <x:Int32>7</x:Int32>
+                            <x:Int32>8</x:Int32>
+                            <x:Int32>9</x:Int32>
+                            <x:Int32>10</x:Int32>
+                            <x:Int32>11</x:Int32>
+                            <x:Int32>12</x:Int32>
+                            <x:Int32>13</x:Int32>
+                            <x:Int32>14</x:Int32>
+                            <x:Int32>15</x:Int32>
+                            <x:Int32>16</x:Int32>
+                            <x:Int32>17</x:Int32>
+                            <x:Int32>18</x:Int32>
+                            <x:Int32>19</x:Int32>
+                            <x:Int32>20</x:Int32>
+                            <x:Int32>21</x:Int32>
+                            <x:Int32>22</x:Int32>
+                            <x:Int32>23</x:Int32>
+                            <x:Int32>24</x:Int32>
+                            <x:Int32>25</x:Int32>
+                        </x:Array>
+                    </Picker.ItemsSource>
+                </Picker>
+            </Frame>
+
+            <Label 
+                Text="PESO" 
+                TextColor="#666666"
+                FontSize="12"
+                Margin="5,15,0,5"/>
+            <Frame 
+                Padding="15,0"
+                CornerRadius="10"
+                HasShadow="False"
+                BackgroundColor="#F5F5F5">
+                <Entry 
+                    x:Name="PesoCaninoEntry"
+                    Placeholder="Agregar el Peso..."
+                    PlaceholderColor="#999999"
+                    BackgroundColor="Transparent"
+                    Keyboard="Numeric"/>
+            </Frame>
+
+            <Label 
+                Text="Celular Dueño" 
+                TextColor="#666666"
+                FontSize="12"
+                Margin="5,15,0,5"/>
+            <Frame 
+                Padding="15,0"
+                CornerRadius="10"
+                HasShadow="False"
+                BackgroundColor="#F5F5F5">
+                <Entry 
+                    x:Name="CelularDuenoEntry"
+                    Placeholder="Editar número teléfono"
+                    Keyboard="Telephone"
+                    MaxLength="10"
+                    PlaceholderColor="#999999"
+                    BackgroundColor="Transparent"/>
+            </Frame>
+
+            <!-- Save Button -->
+            <Button 
+                Text="Guardar Cambios"
+                TextColor="White"
+                BackgroundColor="#0066FF"
+                CornerRadius="10"
+                Margin="0,30,0,0"
+                HeightRequest="50"
+                Clicked="OnGuardarCambiosClicked"/>
+
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:maps="clr-namespace:Xamarin.Forms.GoogleMaps;assembly=Xamarin.Forms.GoogleMaps"
+             x:Class="AllkuApp.Vista.GPSPage"
+             Title="Mapa Sector Carolina"
+             NavigationPage.HasNavigationBar="False">
+
+    <Grid BackgroundColor="White">
+        <!-- Contenido desplazable -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Mapa -->
+        <maps:Map x:Name="map" 
+                  Grid.Row="0"
+                  VerticalOptions="FillAndExpand"
+                  HorizontalOptions="FillAndExpand" />
+
+        <!-- Botones de acción en la parte inferior -->
+        <Grid Grid.Row="1" Padding="10" BackgroundColor="White">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Button Text="Conectar GPS"
+                    Clicked="OnConnectClicked"
+                    BackgroundColor="#0033CC"
+                    TextColor="White"
+                    CornerRadius="10"
+                    FontAttributes="Bold"
+                    HorizontalOptions="FillAndExpand"
+                    HeightRequest="50"
+                    Grid.Column="0"
+                    Margin="5"/>
+
+            <Button Text="Obtener Ubicación GPS"
+                    Clicked="OnTrackClicked"
+                    BackgroundColor="#0033CC"
+                    TextColor="White"
+                    CornerRadius="10"
+                    FontAttributes="Bold"
+                    HorizontalOptions="FillAndExpand"
+                    HeightRequest="50"
+                    Grid.Column="1"
+                    Margin="5"/>
+        </Grid>
+    </Grid>
+</ContentPage>

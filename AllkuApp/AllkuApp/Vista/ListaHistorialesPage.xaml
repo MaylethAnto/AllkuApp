@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllkuApp.Vista.ListaHistorialesPage"
+             BackgroundColor="#FAFAFA"
+             NavigationPage.HasNavigationBar="False">
+
+    <ContentPage.Resources>
+        <!-- Colores -->
+        <ResourceDictionary>
+            <Color x:Key="PrimaryColor">#0033CC</Color>
+            <Color x:Key="TextPrimaryColor">#333333</Color>
+            <Color x:Key="TextSecondaryColor">#666666</Color>
+            <Color x:Key="BorderColor">#E0E0E0</Color>
+            <Color x:Key="BackgroundColor">#FFFFFF</Color>
+        </ResourceDictionary>
+
+        <!-- Estilos Base -->
+        <Style x:Key="BaseLabel" TargetType="Label">
+            <Setter Property="FontFamily" Value="OpenSans"/>
+            <Setter Property="TextColor" Value="{StaticResource TextSecondaryColor}"/>
+            <Setter Property="LineBreakMode" Value="WordWrap"/>
+        </Style>
+
+        <!-- Estilo para Label -->
+        <Style TargetType="Label" BasedOn="{StaticResource BaseLabel}">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="0,2"/>
+        </Style>
+
+        <!-- Estilo para Frame -->
+        <Style TargetType="Frame">
+            <Setter Property="Margin" Value="0,8"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="BorderColor" Value="{StaticResource BorderColor}"/>
+            <Setter Property="HasShadow" Value="True"/>
+            <Setter Property="BackgroundColor" Value="{StaticResource BackgroundColor}"/>
+        </Style>
+
+        <!-- Estilo para Título Principal -->
+        <Style x:Key="TitleLabelStyle" TargetType="Label" BasedOn="{StaticResource BaseLabel}">
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+            <Setter Property="TextColor" Value="{StaticResource TextPrimaryColor}"/>
+            <Setter Property="HorizontalOptions" Value="CenterAndExpand"/>
+            <Setter Property="VerticalOptions" Value="Center"/>
+            <Setter Property="HorizontalTextAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Estilo para Botón de Retroceso -->
+        <Style x:Key="BackButtonStyle" TargetType="ImageButton">
+            <Setter Property="HeightRequest" Value="32"/>
+            <Setter Property="WidthRequest" Value="32"/>
+            <Setter Property="BackgroundColor" Value="Transparent"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="VerticalOptions" Value="Center"/>
+            <Setter Property="HorizontalOptions" Value="Start"/>
+        </Style>
+
+        <!-- Estilo para Botón Principal -->
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="{StaticResource PrimaryColor}"/>
+            <Setter Property="TextColor" Value="White"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="HeightRequest" Value="48"/>
+            <Setter Property="Margin" Value="0,12"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+        </Style>
+
+        <!-- Estilos para elementos del Historial -->
+        <Style x:Key="HistorialDateStyle" TargetType="Label" BasedOn="{StaticResource BaseLabel}">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+            <Setter Property="TextColor" Value="{StaticResource TextPrimaryColor}"/>
+        </Style>
+
+        <Style x:Key="HistorialTypeStyle" TargetType="Label" BasedOn="{StaticResource BaseLabel}">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="TextColor" Value="{StaticResource TextSecondaryColor}"/>
+        </Style>
+
+        <Style x:Key="HistorialDescriptionStyle" TargetType="Label" BasedOn="{StaticResource BaseLabel}">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="TextColor" Value="{StaticResource TextSecondaryColor}"/>
+        </Style>
+    </ContentPage.Resources>
+
+    <ContentPage.Content>
+        <StackLayout Padding="16" Spacing="0">
+            <!-- Encabezado -->
+            <Grid Padding="4" ColumnSpacing="12" Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <ImageButton 
+                    Grid.Column="0"
+                    Source="back_arrow.png"
+                    Style="{StaticResource BackButtonStyle}"
+                    Clicked="OnBackButtonClicked"/>
+
+                <Label 
+                    Grid.Column="1" 
+                    Text="Listado de Historiales"
+                    Style="{StaticResource TitleLabelStyle}"/>
+            </Grid>
+
+            <!-- Botón Nuevo Historial -->
+            <Button 
+                Text="Nuevo Historial"
+                Style="{StaticResource PrimaryButtonStyle}"
+                Clicked="OnNuevoHistorialClicked"/>
+
+            <!-- Lista de Historiales -->
+            <RefreshView 
+                x:Name="RefreshView"
+                IsRefreshing="{Binding IsRefreshing}"
+                Command="{Binding RefreshCommand}">
+                <CollectionView 
+                    x:Name="HistorialesCollectionView"
+                    ItemsSource="{Binding Historiales}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Frame>
+                                <StackLayout Spacing="8">
+                                    <Label 
+                                        Text="{Binding fecha_historial, StringFormat='Fecha: {0:dd/MM/yyyy}'}"
+                                        Style="{StaticResource HistorialDateStyle}"/>
+                                    <Label 
+                                        Text="{Binding tipo_historial, StringFormat='Tipo: {0}'}"
+                                        Style="{StaticResource HistorialTypeStyle}"/>
+                                    <Label 
+                                        Text="{Binding descripcion_historial}"
+                                        Style="{StaticResource HistorialDescriptionStyle}"/>
+                                </StackLayout>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </RefreshView>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

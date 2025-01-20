@@ -9,54 +9,127 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <!-- Header -->
         <Grid Grid.Row="0" Padding="20,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Label Text="Paseador" 
-               Grid.Column="1" 
-               HorizontalOptions="Center" 
-               VerticalOptions="Center"
-               FontSize="18"
-               FontAttributes="Bold"/>
-
+            <Label Text="Solicitudes Pendientes" 
+                   Grid.Column="1" 
+                   HorizontalOptions="Center" 
+                   VerticalOptions="Center"
+                   FontSize="18"
+                   FontAttributes="Bold"/>
             <ImageButton Source="menu_icon.png" 
-               HeightRequest="40" 
-               WidthRequest="40"
-               Grid.Column="2"
-               VerticalOptions="Center"
-               Clicked="OnMenuPaseador_Clicked"/>
+                        Grid.Column="2"
+                        HeightRequest="40" 
+                        WidthRequest="40"
+                        VerticalOptions="Center"
+                        Clicked="OnMenuPaseador_Clicked"/>
         </Grid>
 
-        <StackLayout Grid.Row="1" Padding="20">
-            <Label Text="Seleccione un can para pasear"
-               FontSize="20"
-               HorizontalOptions="Center"
-               Margin="0,20,0,20"/>
-            <ListView x:Name="CanesListView"
-                  ItemSelected="OnCanSelected">
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <ViewCell>
-                            <StackLayout Orientation="Horizontal" Padding="10">
-                                <Frame WidthRequest="100" HeightRequest="100" CornerRadius="50" IsClippedToBounds="True" Padding="0" HorizontalOptions="Start">
-                                    <Image Source="{Binding FotoCaninoImageSource}" Aspect="AspectFill"/>
+        <!-- Contenido Principal -->
+        <ScrollView Grid.Row="1">
+            <StackLayout Padding="20">
+                <ListView x:Name="SolicitudesListView"
+                         HasUnevenRows="True">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <ViewCell>
+                                <Frame Margin="5" Padding="10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackLayout Grid.Column="0">
+                                            <Label Text="{Binding NombreCanino}"
+                                                   FontSize="18"
+                                                   FontAttributes="Bold"/>
+                                            <Label Text="{Binding NombreDueno}"
+                                                   FontSize="16"/>
+                                            <Label Text="{Binding CelularDueno}"
+                                                   FontSize="14"
+                                                   TextColor="Gray"/>
+                                            <Label Text="{Binding FechaSolicitud, StringFormat='{0:dd/MM/yyyy HH:mm}'}"
+                                                   FontSize="14"
+                                                   TextColor="Gray"/>
+                                            <Label Text="{Binding Estado}"
+                                                   FontSize="16"
+                                                   FontAttributes="Bold"
+                                                   TextColor="#007AFF"
+                                                   HorizontalOptions="Center"
+                                                   Margin="0,5,0,5"/>
+
+                                            <StackLayout Orientation="Horizontal" 
+                                                         HorizontalOptions="Center"
+                                                         IsVisible="{Binding MostrarBotonesRespuesta}">
+                                                <Button Text="Aceptar"
+                                                        BackgroundColor="#28A745"
+                                                        TextColor="White"
+                                                        CornerRadius="5"
+                                                        Padding="20,5"
+                                                        Margin="5"
+                                                        Clicked="OnAceptarClicked"
+                                                        CommandParameter="{Binding .}"/>
+                                                <Button Text="Rechazar"
+                                                        BackgroundColor="#DC3545"
+                                                        TextColor="White"
+                                                        CornerRadius="5"
+                                                        Padding="20,5"
+                                                        Margin="5"
+                                                        Clicked="OnRechazarClicked"
+                                                        CommandParameter="{Binding .}"/>
+                                            </StackLayout>
+
+                                            <StackLayout Orientation="Horizontal" 
+                                                         HorizontalOptions="Center"
+                                                         IsVisible="{Binding MostrarBotonesPaseo}">
+                                                <Button Text="Iniciar Paseo"
+                                                        BackgroundColor="#17A2B8"
+                                                        TextColor="White"
+                                                        CornerRadius="5"
+                                                        Padding="20,5"
+                                                        Margin="5"
+                                                        IsVisible="{Binding PuedeIniciar}"
+                                                        Clicked="OnIniciarPaseoClicked"
+                                                        CommandParameter="{Binding .}"/>
+                                                <Button Text="Finalizar Paseo"
+                                                        BackgroundColor="#FFC107"
+                                                        TextColor="White"
+                                                        CornerRadius="5"
+                                                        Padding="20,5"
+                                                        Margin="5"
+                                                        IsVisible="{Binding PuedeFinalizar}"
+                                                        Clicked="OnFinalizarPaseoClicked"
+                                                        CommandParameter="{Binding .}"/>
+                                            </StackLayout>
+                                        </StackLayout>
+
+                                        <!-- Botón de eliminar -->
+                                        <Button Grid.Column="1"
+                                                Text="×"
+                                                FontSize="20"
+                                                WidthRequest="30"
+                                                HeightRequest="30"
+                                                CornerRadius="15"
+                                                BackgroundColor="#FF4444"
+                                                TextColor="White"
+                                                VerticalOptions="Start"
+                                                HorizontalOptions="End"
+                                                Margin="0,0,0,0"
+                                                Clicked="OnEliminarClicked"
+                                                CommandParameter="{Binding .}"/>
+                                    </Grid>
                                 </Frame>
-                                <StackLayout Orientation="Vertical" Padding="10,0,0,0">
-                                    <Label Text="{Binding NombreCanino}" FontSize="16"/>
-                                    <Label Text="{Binding RazaCanino}" FontSize="14" TextColor="Gray"/>
-                                </StackLayout>
-                            </StackLayout>
-                        </ViewCell>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-            <Button Text="Enviar Notificación"
-                Clicked="OnEnviarNotificacionClicked"
-                VerticalOptions="End"
-                HorizontalOptions="Center"/>
-        </StackLayout>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackLayout>
+        </ScrollView>
     </Grid>
 </ContentPage>

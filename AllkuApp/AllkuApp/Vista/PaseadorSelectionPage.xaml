@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllkuApp.Vista.PaseadorSelectionPage"
+             Title="Seleccionar Paseador">
+    <ContentPage.Content>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <StackLayout Grid.Row="0" Padding="20">
+                <Label Text="Paseadores Disponibles"
+                       FontSize="24"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"/>
+            </StackLayout>
+
+            <ListView Grid.Row="1"
+                      x:Name="PaseadoresListView"
+                      ItemSelected="OnPaseadorSelected"
+                      HasUnevenRows="True">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <Frame Margin="10" Padding="10" BorderColor="#DDDDDD">
+                                <StackLayout>
+                                    <Label Text="{Binding NombrePaseador}"
+                                           FontSize="18"
+                                           FontAttributes="Bold"/>
+                                    <Label Text="{Binding CelularPaseador}"
+                                           FontSize="14"
+                                           TextColor="Gray"/>
+                                </StackLayout>
+                            </Frame>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>

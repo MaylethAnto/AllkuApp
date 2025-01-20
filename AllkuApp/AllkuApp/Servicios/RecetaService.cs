@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 
 namespace AllkuApp.Services
@@ -46,15 +49,33 @@ namespace AllkuApp.Services
         }
 
         // Método para crear una nueva receta
-        public async Task<bool> CreateRecetaAsync(CreateRecetaRequest createRecetaRequest)
+
+        public async Task<bool> CreateRecetaAsync(string nombre, string descripcion, int idCanino, byte[] fotoBytes)
         {
-            var jsonRequest = JsonConvert.SerializeObject(createRecetaRequest);
-            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+            try
+            {
+                var content = new MultipartFormDataContent();
+                content.Add(new StringContent(nombre), "nombre_receta");
+                content.Add(new StringContent(descripcion), "descripcion_receta");
+                content.Add(new StringContent(idCanino.ToString()), "id_canino");
 
-            var response = await _httpClient.PostAsync(BaseUrl, content);
+                if (fotoBytes != null && fotoBytes.Length > 0)
+                {
+                    var imageContent = new ByteArrayContent(fotoBytes);
+                    imageContent.Headers.ContentType = MediaTypeHeaderValue.Parse("image/jpeg");
+                    content.Add(imageContent, "foto_receta", "foto.jpg");
+                }
 
-            return response.IsSuccessStatusCode;
+                var response = await _httpClient.PostAsync("", content);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error creating receta: {ex.Message}");
+                throw;
+            }
         }
+
 
         // Método para actualizar una receta existente
         public async Task<bool> UpdateRecetaAsync(int id, RecetaRequest recetaRequest)
@@ -101,7 +122,7 @@ namespace AllkuApp.Services
         public int id_receta { get; set; }
         public string nombre_receta { get; set; }
         public string descripcion_receta { get; set; }
-        public byte[] foto_receta { get; set; }
+        public IFormFile foto_receta { get; set; }
         public int id_canino { get; set; }
     }
 }

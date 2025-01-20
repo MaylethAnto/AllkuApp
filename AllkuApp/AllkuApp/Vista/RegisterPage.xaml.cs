@@ -25,6 +25,8 @@ namespace AllkuApp.Vista
             "edu.gt", "edu.do", "edu.pr"
         };
 
+        private readonly ValidationService _validationService;
+
         public RegisterPage()
         {
             InitializeComponent();
@@ -36,6 +38,8 @@ namespace AllkuApp.Vista
 
             // Configurar el Picker de roles
             RolPicker.SelectedIndexChanged += OnRoleChanged;
+
+            _validationService = new ValidationService();
         }
 
         private async void OnBackButtonClicked(object sender, EventArgs e)
@@ -58,7 +62,7 @@ namespace AllkuApp.Vista
         {
             try
             {
-                if (!ValidarCamposBasicos()) return;
+                if (!await ValidarCamposBasicos()) return;
 
                 var cedula = CedulaEntry.Text.Trim();
                 var nombre = NombreEntry.Text.Trim();
@@ -87,7 +91,10 @@ namespace AllkuApp.Vista
             }
         }
 
-        private bool ValidarCamposBasicos()
+
+
+
+        private async Task<bool> ValidarCamposBasicos()
         {
             try
             {
@@ -100,28 +107,49 @@ namespace AllkuApp.Vista
                     string.IsNullOrWhiteSpace(ConfirmarContraseñaEntry.Text) ||
                     RolPicker.SelectedItem == null)
                 {
-                    DisplayAlert("Error", "Por favor, complete todos los campos requeridos", "OK");
+                    await DisplayAlert("Error", "Por favor, complete todos los campos requeridos", "OK");
                     return false;
                 }
 
-                // Validar cédula
+                // Validar formato de cédula
                 if (CedulaEntry.Text.Length != 10 || !CedulaEntry.Text.All(char.IsDigit))
                 {
-                    DisplayAlert("Error", "La cédula debe tener 10 dígitos numéricos", "OK");
+                    await DisplayAlert("Error", "La cédula debe tener 10 dígitos numéricos", "OK");
+                    return false;
+                }
+
+                // Validar si la cédula ya existe
+                if (await _validationService.VerificarCedulaAsync(CedulaEntry.Text))
+                {
+                    await DisplayAlert("Error", "Esta cédula ya está registrada en el sistema", "OK");
+                    return false;
+                }
+
+                // Validar si el usuario ya existe
+                if (await _validationService.VerificarUsuarioAsync(UsuarioEntry.Text))
+                {
+                    await DisplayAlert("Error", "Este nombre de usuario ya está en uso", "OK");
                     return false;
                 }
 
                 // Validar correo electrónico
                 if (!IsValidEmail(CorreoEntry.Text))
                 {
-                    DisplayAlert("Error", "Por favor, ingrese un correo electrónico válido", "OK");
+                    await DisplayAlert("Error", "Por favor, ingrese un correo electrónico válido", "OK");
+                    return false;
+                }
+
+                // Validar si el correo ya existe
+                if (await _validationService.VerificarCorreoAsync(CorreoEntry.Text))
+                {
+                    await DisplayAlert("Error", "Este correo electrónico ya está registrado", "OK");
                     return false;
                 }
 
                 // Validar contraseñas
                 if (ContraseñaEntry.Text != ConfirmarContraseñaEntry.Text)
                 {
-                    DisplayAlert("Error", "Las contraseñas no coinciden", "OK");
+                    await DisplayAlert("Error", "Las contraseñas no coinciden", "OK");
                     return false;
                 }
 
@@ -131,10 +159,10 @@ namespace AllkuApp.Vista
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error en ValidarCamposBasicos: {ex.Message}");
+                await DisplayAlert("Error", "Error al validar los campos. Por favor, intente nuevamente.", "OK");
                 return false;
             }
         }
-
         private bool IsValidEmail(string email)
         {
             if (string.IsNullOrWhiteSpace(email))

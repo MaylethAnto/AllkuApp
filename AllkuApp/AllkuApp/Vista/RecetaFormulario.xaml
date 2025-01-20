@@ -1,96 +1,117 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:local="clr-namespace:AllkuApp.Vista"
              x:Class="AllkuApp.Vista.RecetaFormulario"
-             NavigationPage.HasNavigationBar="False"
              Title="Formulario de Receta"
+             NavigationPage.HasNavigationBar="False"
              BackgroundColor="#f5f5f5">
 
-    <StackLayout Padding="20,40,10,0">
-        <!-- Título de la página -->
-        <Label Text="Formulario de Receta"
-               FontSize="25"
-               FontAttributes="Bold"
-               TextColor="#333"
-               HorizontalOptions="Center"
-               Margin="0, 5, 0, 20"/>
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Style x:Key="TitleLabelStyle" TargetType="Label">
+                <Setter Property="TextColor" Value="#333333"/>
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="FontAttributes" Value="Bold"/>
+                <Setter Property="Margin" Value="0,15,0,5"/>
+            </Style>
 
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="30" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="30" />
-            </Grid.ColumnDefinitions>
+            <Style x:Key="EntryStyle" TargetType="Entry">
+                <Setter Property="BackgroundColor" Value="White"/>
+                <Setter Property="TextColor" Value="#333333"/>
+                <Setter Property="PlaceholderColor" Value="#999999"/>
+                <Setter Property="HeightRequest" Value="45"/>
+                <Setter Property="Margin" Value="0,0,0,15"/>
+            </Style>
 
-            <ImageButton 
-                Grid.Column="0"
-                Source="back_arrow.png"
-                HeightRequest="25"
-                WidthRequest="25"
-                BackgroundColor="Transparent"
-                VerticalOptions="Start"
-                HorizontalOptions="Start"
-                Clicked="OnBackButtonClicked" />
+            <Style x:Key="ButtonStyle" TargetType="Button">
+                <Setter Property="BackgroundColor" Value="#0033CC"/>
+                <Setter Property="TextColor" Value="White"/>
+                <Setter Property="CornerRadius" Value="8"/>
+                <Setter Property="HeightRequest" Value="50"/>
+                <Setter Property="Margin" Value="0,10"/>
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
-            <Frame Grid.Column="1" BackgroundColor="White" CornerRadius="15" Padding="15" HasShadow="True">
-                <StackLayout Spacing="10">
+    <ScrollView>
+        <StackLayout Padding="20">
+            <!-- Header con botón de atrás -->
+            <Grid Margin="0,40,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <ImageButton 
+                    Grid.Column="0"
+                    Source="back_arrow_white.png"
+                    HeightRequest="24"
+                    WidthRequest="24"
+                    BackgroundColor="Black"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Start"
+                    Clicked="OnBackButtonClicked"
+                    Margin="0,0,15,0"/>
+
+                <Label 
+                    Grid.Column="1"
+                    Text="Nueva Receta"
+                    FontSize="24"
+                    FontAttributes="Bold"
+                    TextColor="#333333"
+                    VerticalOptions="Center"/>
+            </Grid>
+
+            <!-- Formulario -->
+            <Frame BackgroundColor="White" 
+                   Padding="20" 
+                   CornerRadius="10" 
+                   HasShadow="True">
+                <StackLayout>
                     <Label Text="Nombre de la Receta" 
-                           FontSize="Medium" 
-                           TextColor="#666" />
-                    <Frame BackgroundColor="#eeeeee" CornerRadius="10" Padding="5">
-                        <Entry x:Name="NombreRecetaEntry" Placeholder="Ingrese el nombre de la receta" BackgroundColor="Transparent" />
-                    </Frame>
+                           Style="{StaticResource TitleLabelStyle}"/>
+                    <Entry x:Name="NombreRecetaEntry" 
+                           Placeholder="Ingrese el nombre de la receta"
+                           Style="{StaticResource EntryStyle}"/>
 
                     <Label Text="Descripción de la Receta" 
-                           FontSize="Medium" 
-                           TextColor="#666" />
-                    <Frame BackgroundColor="#eeeeee" CornerRadius="10" Padding="5">
-                        <Editor x:Name="DescripcionRecetaEditor" Placeholder="Ingrese la descripción de la receta" HeightRequest="80" BackgroundColor="Transparent" />
-                    </Frame>
+                           Style="{StaticResource TitleLabelStyle}"/>
+                    <Editor x:Name="DescripcionRecetaEditor" 
+                            Placeholder="Ingrese la descripción de la receta"
+                            HeightRequest="120"
+                            BackgroundColor="White"
+                            TextColor="#333333"
+                            Margin="0,0,0,15"/>
 
                     <Label Text="Foto de la Receta" 
-                           FontSize="Medium" 
-                           TextColor="#666" />
-                    <StackLayout Orientation="Horizontal" Spacing="10">
-                        <Button Text="Seleccionar Foto" Clicked="OnSeleccionarFotoClicked" BackgroundColor="#2196F3" TextColor="White" CornerRadius="20" />
-                        <Image x:Name="FotoRecetaImage" HeightRequest="100" WidthRequest="100" VerticalOptions="Center" Aspect="AspectFill" />
-                    </StackLayout>
-                    <Entry x:Name="FotoRecetaEntry" Placeholder="Ingrese la foto en formato Base64" IsVisible="False" />
+                           Style="{StaticResource TitleLabelStyle}"/>
+                    <Button Text="Seleccionar Foto" 
+                            Clicked="OnSelectPhotoClicked"
+                            Style="{StaticResource ButtonStyle}"
+                            BackgroundColor="#2196F3"/>
 
-                    <Label Text="ID Canino" 
-                           FontSize="Medium" 
-                           TextColor="#666" />
-                    <Frame BackgroundColor="#eeeeee" CornerRadius="10" Padding="5">
-                        <Entry x:Name="IdCaninoEntry" Placeholder="Ingrese el ID del canino" Keyboard="Numeric" BackgroundColor="Transparent" />
+                    <Frame CornerRadius="10" 
+                           Padding="0" 
+                           IsClippedToBounds="True" 
+                           Margin="0,10,0,15">
+                        <Image x:Name="FotoRecetaImage" 
+                               HeightRequest="200" 
+                               Aspect="AspectFill"/>
                     </Frame>
 
-                    <Grid ColumnSpacing="10" Padding="0,20,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                    <Label Text="ID Canino" 
+                           Style="{StaticResource TitleLabelStyle}"/>
+                    <Entry x:Name="IdCaninoEntry" 
+                           Placeholder="Ingrese el ID del canino"
+                           Keyboard="Numeric"
+                           Style="{StaticResource EntryStyle}"/>
 
-                        <Button Text="Guardar " Clicked="OnGuardarRecetaClicked" 
-                                BackgroundColor="#2196F3" 
-                                TextColor="White" 
-                                CornerRadius="25" 
-                                WidthRequest="150" 
-                                HeightRequest="50" 
-                                HorizontalOptions="Start" 
-                                Grid.Column="0" />
-
-                        <Button Text="Cancelar" Clicked="OnCancelarClicked"
-                                BackgroundColor="#F44336"
-                                TextColor="White"
-                                CornerRadius="25"
-                                WidthRequest="150" 
-                                HeightRequest="50"
-                                HorizontalOptions="End" 
-                                Grid.Column="1" />
-                    </Grid>
+                    <Button Text="GUARDAR RECETA" 
+                            Clicked="OnSaveClicked"
+                            Style="{StaticResource ButtonStyle}"
+                            Margin="0,20,0,0"/>
                 </StackLayout>
             </Frame>
-        </Grid>
-    </StackLayout>
+        </StackLayout>
+    </ScrollView>
 </ContentPage>

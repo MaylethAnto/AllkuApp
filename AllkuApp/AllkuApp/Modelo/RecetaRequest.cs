@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -15,7 +16,7 @@ namespace AllkuApp.Modelo
 
         public string descripcion_receta { get; set; }
 
-        public byte[] foto_receta { get; set; }
+        public IFormFile foto_receta { get; set; }
 
         public int id_canino { get; set; }
     }

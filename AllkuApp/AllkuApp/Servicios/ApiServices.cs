@@ -224,150 +224,224 @@ namespace AllkuApp.Servicios
             }
         }
 
-
-
-        // Métodos para Historial Clínico
-        public async Task<List<Historial_Clinico>> GetHistorialClinicoAsync()
-        {
-            try
-            {
-                var response = await _client.GetAsync($"{_baseUrl}historialClinico");
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<List<Historial_Clinico>>(json);
-                }
-                return null;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error: {ex.Message}");
-                throw;
-            }
-        }
-
-        public async Task<Historial_Clinico> AddHistorialClinicoAsync(Historial_Clinico historial)
-        {
-            try
-            {
-                var json = JsonConvert.SerializeObject(historial);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _client.PostAsync($"{_baseUrl}historialClinico", content);
-                if (response.IsSuccessStatusCode)
-                {
-                    var jsonResponse = await response.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<Historial_Clinico>(jsonResponse);
-                }
-                return null;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error: {ex.Message}");
-                throw;
-            }
-        }
         // Métodos para Ejercicio
-
-        public async Task<DistanciaRecorrida> ObtenerDistanciaRecorridaAsync(int idCanino, DateTime fechaInicio, DateTime fechaFin)
+        public async Task<List<DistanciaRecorridaModel>> ObtenerDistanciasAsync(int idCanino)
         {
-            var url = $"https://allkuapi.sytes.net/api/Gps/distancia?id_canino={idCanino}&fecha_inicio={fechaInicio:yyyy-MM-dd}&fecha_fin={fechaFin:yyyy-MM-dd}";
-
             try
             {
+                using (var client = new HttpClient())
+                {
+                    var response = await client.GetAsync($"https://allkuapi.sytes.net/api/Gps/distancia?id_canino={idCanino}");
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var json = await response.Content.ReadAsStringAsync();
+                        return JsonConvert.DeserializeObject<List<DistanciaRecorridaModel>>(json);
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Manejo de errores
+                Console.WriteLine($"Error al consumir el API: {ex.Message}");
+                return null;
+            }
+        }
+
+        public async Task<List<PaseoModel>> ObtenerPaseosFinalizadosAsync(int idCanino)
+        {
+            // Cambiamos la URL para usar el parámetro en la ruta en lugar de query parameter
+            var url = $"https://allkuapi.sytes.net/api/Gps/paseos-finalizados/{idCanino}";
+            try
+            {
+                var response = await _client.GetStringAsync(url);
+                Debug.WriteLine($"Respuesta API: {response}");
+
+                var paseos = JsonConvert.DeserializeObject<List<PaseoModel>>(response);
+                return paseos ?? new List<PaseoModel>();
+            }
+            catch (HttpRequestException ex)
+            {
+                Debug.WriteLine($"Error de HTTP: {ex.Message}");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error inesperado: {ex.Message}");
+                throw;
+            }
+        }
+
+
+
+        public async Task<List<PaseadorDisponibleDto>> GetPaseadoresDisponiblesAsync()
+        {
+            try
+            {
+                var response = await _client.GetAsync($"https://allkuapi.sytes.net/api/Paseador/disponibles");
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<List<PaseadorDisponibleDto>>(content,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+                return new List<PaseadorDisponibleDto>();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error en GetPaseadoresDisponiblesAsync: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<bool> EnviarSolicitudPaseoAsync(SolicitudPaseoDto solicitud)
+        {
+            try
+            {
+                var json = JsonSerializer.Serialize(solicitud);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _client.PostAsync($"https://allkuapi.sytes.net/api/Paseador/solicitud", content);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error en EnviarSolicitudPaseoAsync: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<List<SolicitudPaseoResponseDto>> GetSolicitudesPaseadorAsync(string cedula)
+        {
+            try
+            {
+                var url = $"https://allkuapi.sytes.net/api/Paseador/{cedula}/solicitudes";
+                var response = await _client.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    var solicitudes = JsonConvert.DeserializeObject<List<SolicitudPaseoResponseDto>>(responseString);
+                    return solicitudes;
+                }
+                else
+                {
+                    Debug.WriteLine($"Error al obtener solicitudes: {response.StatusCode}");
+                    return new List<SolicitudPaseoResponseDto>(); // Si la respuesta no es exitosa, retornar lista vacía
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error al obtener solicitudes: {ex.Message}");
+                return new List<SolicitudPaseoResponseDto>(); // Retorna lista vacía en caso de error
+            }
+        }
+
+
+
+
+        public async Task<bool> ResponderSolicitudAsync(int idSolicitud, string cedulaPaseador, bool aceptada)
+        {
+            try
+            {
+
+                var respuesta = new RespuestaSolicitudDto
+                {
+                    CedulaPaseador = cedulaPaseador,
+                    Aceptada = aceptada
+                };
+                var json = JsonSerializer.Serialize(respuesta);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _client.PutAsync($"https://allkuapi.sytes.net/api/Paseador/solicitud/{idSolicitud}/responder", content);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error en ResponderSolicitudAsync: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<int?> ObtenerIdPaseoPorIdSolicitudAsync(int idSolicitud)
+        {
+            try
+            {
+                var url = $"https://allkuapi.sytes.net/api/Paseador/ObtenerIdPaseoPorIdSolicitud/{idSolicitud}";
                 var response = await _client.GetAsync(url);
 
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    Debug.WriteLine($"Respuesta API: {content}");
+                    var idPaseo = JsonSerializer.Deserialize<int>(content);
+                    return idPaseo;
+                }
 
-                    if (!string.IsNullOrWhiteSpace(content) && content != "null")
-                    {
-                        var distancia = JsonSerializer.Deserialize<DistanciaRecorrida>(content, new JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true
-                        });
+                Debug.WriteLine($"Error al obtener ID de paseo: {response.StatusCode}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error inesperado: {ex.Message}");
+                return null;
+            }
+        }
 
-                        return distancia;
-                    }
-                    else
-                    {
-                        Debug.WriteLine("El contenido de la respuesta está vacío o es 'null'.");
-                        return null;
-                    }
+        public async Task<(bool success, string message)> FinalizarPaseoAsync(int idPaseo, string cedulaPaseador)
+        {
+            try
+            {
+                if (idPaseo <= 0 || string.IsNullOrEmpty(cedulaPaseador))
+                {
+                    throw new ArgumentException("ID de paseo debe ser un número entero positivo y cédula del paseador no puede estar vacía.");
+                }
+
+                var url = $"https://allkuapi.sytes.net/api/paseador/paseo/{idPaseo}/finalizar";
+                var requestBody = new { CedulaPaseador = cedulaPaseador };
+                var jsonContent = JsonSerializer.Serialize(requestBody);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                var response = await _client.PutAsync(url, content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return (true, "Paseo finalizado correctamente.");
                 }
                 else
                 {
-                    Debug.WriteLine($"Error en la respuesta: {response.StatusCode} - {response.ReasonPhrase}");
-                    throw new Exception("Error al obtener la distancia recorrida");
+                    return (false, $"Error del servidor: {response.StatusCode} - {responseContent}");
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error en ObtenerDistanciaRecorridaAsync: {ex.Message}");
-                throw;
-            }
-        }
-
-        public async Task<DistanciaRecorrida> ObtenerHistorialRecorridosAsync()
-        {
-            try
-            {
-                // Llamar a la API y obtener la respuesta JSON
-                var response = await _client.GetStringAsync("https://allkuapi.sytes.net/api/Gps/distancia?id_canino={idCanino}&fecha_inicio={fechaInicio:yyyy-MM-dd}&fecha_fin={fechaFin:yyyy-MM-dd}");
-
-                // Deserializar a un único objeto, no a una lista
-                var historial = JsonSerializer.Deserialize<DistanciaRecorrida>(response);
-
-                return historial;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error en ObtenerHistorialRecorridosAsync: {ex.Message}");
-                return null;
+                Debug.WriteLine($"Error inesperado: {ex.Message}");
+                return (false, $"Error inesperado: {ex.Message}");
             }
         }
 
 
 
 
-        // Métodos para GPS
-        public async Task<List<Gps>> GetGpsAsync()
+        public async Task<bool> ActualizarEstadoPaseoAsync(ActualizacionPaseoDto actualizacion)
         {
             try
             {
-                var response = await _client.GetAsync($"{_baseUrl}gps");
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<List<Gps>>(json);
-                }
-                return null;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error: {ex.Message}");
-                throw;
-            }
-        }
-
-        public async Task<Gps> AddGpsAsync(Gps gps)
-        {
-            try
-            {
-                var json = JsonConvert.SerializeObject(gps);
+                var json = JsonSerializer.Serialize(actualizacion);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _client.PostAsync($"{_baseUrl}gps", content);
-                if (response.IsSuccessStatusCode)
-                {
-                    var jsonResponse = await response.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<Gps>(jsonResponse);
-                }
-                return null;
+                var endpoint = actualizacion.EsFinalizar ? "finalizar" : "iniciar";
+
+                var response = await _client.PutAsync(
+                    $"{_baseUrl}paseador/paseo/{actualizacion.IdSolicitud}/{endpoint}",
+                    content);
+
+                return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error: {ex.Message}");
+                Debug.WriteLine($"Error en ActualizarEstadoPaseoAsync: {ex.Message}");
                 throw;
             }
         }
@@ -413,49 +487,6 @@ namespace AllkuApp.Servicios
             }
         }
 
-
-
-        // Métodos para Receta
-        public async Task<List<Receta>> GetRecetasAsync()
-        {
-            try
-            {
-                var response = await _client.GetAsync($"{_baseUrl}recetas");
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<List<Receta>>(json);
-                }
-                return null;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error: {ex.Message}");
-                throw;
-            }
-        }
-
-        public async Task<Receta> AddRecetaAsync(Receta receta)
-        {
-            try
-            {
-                var json = JsonConvert.SerializeObject(receta);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _client.PostAsync($"{_baseUrl}recetas", content);
-                if (response.IsSuccessStatusCode)
-                {
-                    var jsonResponse = await response.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<Receta>(jsonResponse);
-                }
-                return null;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error: {ex.Message}");
-                throw;
-            }
-        }
-
         public async Task<T> GetAsync<T>(string endpoint)
         {
             var response = await _client.GetAsync(endpoint);
@@ -490,19 +521,55 @@ namespace AllkuApp.Servicios
         public string CedulaDueno { get; set; }
     }
 
-    public class DistanciaRecorrida
+
+    public class PaseadorDisponibleDto
     {
-        public int Id { get; set; }
-        public string FechaInicio { get; set; }
-        public string FechaFin { get; set; }
-        public decimal DistanciaTotal { get; set; }
+        public string CedulaPaseador { get; set; }
+        public string NombrePaseador { get; set; }
+        public string CelularPaseador { get; set; }
+        public string CorreoPaseador { get; set; }
+        public bool EstaDisponible { get; set; }
     }
 
-    public class HistorialRecorrido
+   
+
+
+    public class PaseoDto
     {
+        public int IdPaseo { get; set; }
         public DateTime FechaInicio { get; set; }
-        public DateTime FechaFin { get; set; }
-        public double DistanciaTotal { get; set; }
+        public DateTime? FechaFin { get; set; }
+        public string EstadoPaseo { get; set; }
+        public string NombreCanino { get; set; }
+    }
+
+    public class FinalizarPaseoDto
+    {
+
+        public string CedulaPaseador { get; set; }
+
+    }
+
+
+    public class RespuestaSolicitudDto
+    {
+        public int IdSolicitud { get; set; }
+        public string CedulaPaseador { get; set; }
+        public bool Aceptada { get; set; }
+    }
+
+    public class SolicitudPaseoDto
+    {
+        public int IdCanino { get; set; }
+        public string CedulaPaseador { get; set; }
+        public DateTime FechaSolicitud { get; set; }
+    }
+
+    public class ActualizacionPaseoDto
+    {
+        public int IdSolicitud { get; set; }
+        public string CedulaPaseador { get; set; }
+        public bool EsFinalizar { get; set; }
     }
 
 }

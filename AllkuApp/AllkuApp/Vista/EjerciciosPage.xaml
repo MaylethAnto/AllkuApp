@@ -8,7 +8,6 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- Altura ajustada para el header -->
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -16,10 +15,8 @@
         <Grid Grid.Row="0" Padding="20,40,20,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="24"/>
-                <!-- Ancho del botón -->
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="24"/>
-                <!-- Columna de balance -->
             </Grid.ColumnDefinitions>
 
             <ImageButton 
@@ -43,31 +40,9 @@
 
         <ScrollView Grid.Row="1">
             <StackLayout Padding="20">
-                <!-- Fecha y Hora de Inicio -->
-                <Label Text="Fecha y Hora de Inicio" FontAttributes="Bold" TextColor="#666666" />
-                <StackLayout Orientation="Horizontal" Margin="0,0,0,15">
-                    <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent" HorizontalOptions="FillAndExpand">
-                        <DatePicker x:Name="FechaInicio" Format="dd/MM/yyyy" BackgroundColor="Transparent" />
-                    </Frame>
-                    <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent" HorizontalOptions="FillAndExpand" Margin="10,0,0,0">
-                        <TimePicker x:Name="HoraInicio" BackgroundColor="Transparent" />
-                    </Frame>
-                </StackLayout>
-
-                <!-- Fecha y Hora de Fin -->
-                <Label Text="Fecha y Hora de Fin" FontAttributes="Bold" TextColor="#666666" />
-                <StackLayout Orientation="Horizontal" Margin="0,0,0,15">
-                    <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent" HorizontalOptions="FillAndExpand">
-                        <DatePicker x:Name="FechaFin" Format="dd/MM/yyyy" BackgroundColor="Transparent" />
-                    </Frame>
-                    <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent" HorizontalOptions="FillAndExpand" Margin="10,0,0,0">
-                        <TimePicker x:Name="HoraFin" BackgroundColor="Transparent" />
-                    </Frame>
-                </StackLayout>
-
-                <!-- Botón Obtener Recorrido -->
-                <Button Text="Obtener Recorrido"
-                        Clicked="OnObtenerDistanciaClicked"
+                <!-- Botón Elegir Paseador -->
+                <Button Text="Elegir Paseador"
+                        Clicked="OnElegirPaseadorClicked"
                         BackgroundColor="#0033CC"
                         TextColor="White"
                         CornerRadius="10"
@@ -77,21 +52,26 @@
                         Margin="0,0,0,20" />
 
                 <!-- ListView para mostrar el recorrido -->
-                <ListView x:Name="DistanciaListView">
+                <ListView x:Name="DistanciaListView"
+          ItemsSource="{Binding Distancia}"
+          HasUnevenRows="True">
                     <ListView.Header>
-                        <StackLayout Orientation="Horizontal">
-                            <Label Text="Fecha Inicio" HorizontalOptions="StartAndExpand" FontAttributes="Bold" TextColor="#666666" />
-                            <Label Text="Fecha Fin" HorizontalOptions="EndAndExpand" FontAttributes="Bold" TextColor="#666666" />
-                            <Label Text="Distancia KM" HorizontalOptions="EndAndExpand" FontAttributes="Bold" TextColor="#666666" />
+                        <StackLayout Orientation="Horizontal" Padding="10">
+                            <Label Text="Fecha Inicio" HorizontalOptions="StartAndExpand"/>
+                            <Label Text="Fecha Fin" HorizontalOptions="CenterAndExpand"/>
+                            <Label Text="Distancia KM" HorizontalOptions="End"/>
                         </StackLayout>
                     </ListView.Header>
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <ViewCell>
-                                <StackLayout Orientation="Horizontal">
-                                    <Label Text="{Binding FechaInicio}" HorizontalOptions="StartAndExpand" TextColor="#333333" />
-                                    <Label Text="{Binding FechaFin}" HorizontalOptions="EndAndExpand" TextColor="#333333" />
-                                    <Label Text="{Binding DistanciaTotal}" HorizontalOptions="EndAndExpand" TextColor="#333333" />
+                                <StackLayout Orientation="Horizontal" Padding="10">
+                                    <Label Text="{Binding FechaInicio, StringFormat='{0:dd/MM/yyyy HH:mm:ss}'}" 
+                                           HorizontalOptions="StartAndExpand"/>
+                                    <Label Text="{Binding FechaFin, StringFormat='{0:dd/MM/yyyy HH:mm:ss}'}" 
+                                           HorizontalOptions="CenterAndExpand"/>
+                                    <Label Text="{Binding DistanciaTotal, StringFormat='{0:F1} KM'}" 
+                           HorizontalOptions="End"/>
                                 </StackLayout>
                             </ViewCell>
                         </DataTemplate>

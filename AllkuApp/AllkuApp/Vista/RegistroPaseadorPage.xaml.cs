@@ -6,6 +6,7 @@ using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 using System.Text.RegularExpressions;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AllkuApp.Vista
 {
@@ -20,10 +21,13 @@ namespace AllkuApp.Vista
             "edu.gt", "edu.do", "edu.pr"
         };
 
+        private readonly ValidationService _validationService;
+
         public RegistroPaseadorPage()
         {
             InitializeComponent();
             _authService = new AuthService();
+            _validationService = new ValidationService();
         }
 
         private async void OnBackButtonClicked(object sender, EventArgs e)
@@ -35,7 +39,7 @@ namespace AllkuApp.Vista
         {
             try
             {
-                if (!ValidarCampos()) return;
+                if (!await ValidarCampos()) return;
 
                 var registerDto = new RegistrarUsuarioDto
                 {
@@ -68,40 +72,66 @@ namespace AllkuApp.Vista
             }
         }
 
-        private bool ValidarCampos()
+        private async Task<bool> ValidarCampos()
         {
-            if (string.IsNullOrWhiteSpace(CedulaEntry.Text) ||
-                string.IsNullOrWhiteSpace(NombreEntry.Text) ||
-                string.IsNullOrWhiteSpace(UsuarioEntry.Text) ||
-                string.IsNullOrWhiteSpace(CorreoEntry.Text) ||
-                string.IsNullOrWhiteSpace(ContraseñaEntry.Text) ||
-                string.IsNullOrWhiteSpace(ConfirmarContraseñaEntry.Text) ||
-                string.IsNullOrWhiteSpace(DireccionEntry.Text) ||
-                string.IsNullOrWhiteSpace(CelularEntry.Text))
+            try
             {
-                DisplayAlert("Error", "Por favor, complete todos los campos requeridos", "OK");
+                if (string.IsNullOrWhiteSpace(CedulaEntry.Text) ||
+                    string.IsNullOrWhiteSpace(NombreEntry.Text) ||
+                    string.IsNullOrWhiteSpace(UsuarioEntry.Text) ||
+                    string.IsNullOrWhiteSpace(CorreoEntry.Text) ||
+                    string.IsNullOrWhiteSpace(ContraseñaEntry.Text) ||
+                    string.IsNullOrWhiteSpace(ConfirmarContraseñaEntry.Text) ||
+                    string.IsNullOrWhiteSpace(DireccionEntry.Text) ||
+                    string.IsNullOrWhiteSpace(CelularEntry.Text))
+                {
+                    await DisplayAlert("Error", "Por favor, complete todos los campos requeridos", "OK");
+                    return false;
+                }
+
+                // Validar formato de cédula
+                if (CedulaEntry.Text.Length != 10 || !CedulaEntry.Text.All(char.IsDigit))
+                {
+                    await DisplayAlert("Error", "La cédula debe tener 10 dígitos numéricos", "OK");
+                    return false;
+                }
+
+                // Validar si la cédula ya existe
+                if (await _validationService.VerificarCedulaAsync(CedulaEntry.Text))
+                {
+                    await DisplayAlert("Error", "Esta cédula ya está registrada en el sistema", "OK");
+                    return false;
+                }
+
+                // Validar si el usuario ya existe
+                if (await _validationService.VerificarUsuarioAsync(UsuarioEntry.Text))
+                {
+                    await DisplayAlert("Error", "Este nombre de usuario ya está en uso", "OK");
+                    return false;
+                }
+
+                // Validar correo electrónico
+                if (!IsValidEmail(CorreoEntry.Text))
+                {
+                    await DisplayAlert("Error", "Por favor, ingrese un correo electrónico válido", "OK");
+                    return false;
+                }
+
+                // Validar si el correo ya existe
+                if (await _validationService.VerificarCorreoAsync(CorreoEntry.Text))
+                {
+                    await DisplayAlert("Error", "Este correo electrónico ya está registrado", "OK");
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error en ValidarCampos: {ex.Message}");
+                await DisplayAlert("Error", "Error al validar los campos. Por favor, intente nuevamente.", "OK");
                 return false;
             }
-
-            if (CedulaEntry.Text.Length != 10 || !CedulaEntry.Text.All(char.IsDigit))
-            {
-                DisplayAlert("Error", "La cédula debe tener 10 dígitos numéricos", "OK");
-                return false;
-            }
-
-            if (!IsValidEmail(CorreoEntry.Text))
-            {
-                DisplayAlert("Error", "Por favor, ingrese un correo electrónico válido", "OK");
-                return false;
-            }
-
-            if (ContraseñaEntry.Text != ConfirmarContraseñaEntry.Text)
-            {
-                DisplayAlert("Error", "Las contraseñas no coinciden", "OK");
-                return false;
-            }
-
-            return true;
         }
 
         private bool IsValidEmail(string email)

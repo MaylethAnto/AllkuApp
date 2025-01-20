@@ -1,78 +1,284 @@
 ﻿using AllkuApp.Dtos;
+using AllkuApp.Modelo;
 using AllkuApp.Servicios;
+using Newtonsoft.Json;
 using System;
-using Xamarin.Forms;
-using Xamarin.Essentials;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Xamarin.Essentials;
+using Xamarin.Forms;
 
 namespace AllkuApp.Vista
 {
     public partial class PaseadoresPage : ContentPage
     {
         private readonly ApiService _apiService;
-        private CaninoDto _canSeleccionado;
+        private ObservableCollection<SolicitudPaseoResponseDto> _solicitudes;
 
         public PaseadoresPage()
         {
             InitializeComponent();
             _apiService = new ApiService();
-            CargarCanes();
+            _solicitudes = new ObservableCollection<SolicitudPaseoResponseDto>();
+            SolicitudesListView.ItemsSource = _solicitudes;
+            CargarSolicitudesGuardadas();
         }
 
-        private async void CargarCanes()
+        private void CargarSolicitudesGuardadas()
         {
-            var canes = await _apiService.GetCaninesAsync();
-            foreach (var canino in canes)
+            var solicitudesGuardadas = Preferences.Get("SolicitudesPaseador", string.Empty);
+            if (!string.IsNullOrEmpty(solicitudesGuardadas))
             {
-                // Convertir byte array a ImageSource
-                if (canino.FotoCanino != null)
+                try
                 {
-                    canino.FotoCaninoImageSource = ImageSource.FromStream(() => new MemoryStream(canino.FotoCanino));
+                    var solicitudesDeserializadas = JsonConvert.DeserializeObject<ObservableCollection<SolicitudPaseoResponseDto>>(solicitudesGuardadas);
+                    _solicitudes.Clear();
+
+                    foreach (var solicitud in solicitudesDeserializadas)
+                    {
+                        ActualizarEstadoBotones(solicitud);
+                        _solicitudes.Add(solicitud);
+                    }
+
+                    // Ordenar las solicitudes después de cargarlas
+                    var solicitudesOrdenadas = new ObservableCollection<SolicitudPaseoResponseDto>(
+                        _solicitudes.OrderByDescending(s => s.FechaSolicitud)
+                    );
+                    _solicitudes = solicitudesOrdenadas;
+                    SolicitudesListView.ItemsSource = _solicitudes;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error al deserializar solicitudes: {ex.Message}");
+                    _solicitudes = new ObservableCollection<SolicitudPaseoResponseDto>();
                 }
             }
-            CanesListView.ItemsSource = canes;
-        }
+            else
+            {
+                _solicitudes = new ObservableCollection<SolicitudPaseoResponseDto>();
+            }
 
-        private void OnCanSelected(object sender, SelectedItemChangedEventArgs e)
+            SolicitudesListView.ItemsSource = _solicitudes;
+        }
+        private void ActualizarEstadoBotones(SolicitudPaseoResponseDto solicitud)
         {
-            _canSeleccionado = e.SelectedItem as CaninoDto;
+            switch (solicitud.Estado?.ToLower())
+            {
+                case "pendiente":
+                    solicitud.MostrarBotonesRespuesta = true;
+                    solicitud.MostrarBotonesPaseo = false;
+                    solicitud.PuedeIniciar = false;
+                    solicitud.PuedeFinalizar = false;
+                    break;
+                case "aceptada":
+                    solicitud.MostrarBotonesRespuesta = false;
+                    solicitud.MostrarBotonesPaseo = true;
+                    solicitud.PuedeIniciar = true;
+                    solicitud.PuedeFinalizar = false;
+                    break;
+                case "en progreso":
+                    solicitud.MostrarBotonesRespuesta = false;
+                    solicitud.MostrarBotonesPaseo = true;
+                    solicitud.PuedeIniciar = false;
+                    solicitud.PuedeFinalizar = true;
+                    break;
+                case "finalizado":
+                    solicitud.MostrarBotonesRespuesta = false;
+                    solicitud.MostrarBotonesPaseo = false;
+                    solicitud.PuedeIniciar = false;
+                    solicitud.PuedeFinalizar = false;
+                    break;
+                case "en curso":
+                    solicitud.MostrarBotonesRespuesta = false;
+                    solicitud.MostrarBotonesPaseo = true;
+                    solicitud.PuedeIniciar = false;
+                    solicitud.PuedeFinalizar = true;
+                    break;
+                default:
+                    solicitud.MostrarBotonesRespuesta = false;
+                    solicitud.MostrarBotonesPaseo = false;
+                    solicitud.PuedeIniciar = false;
+                    solicitud.PuedeFinalizar = false;
+                    break;
+            }
         }
 
-        private async void OnEnviarNotificacionClicked(object sender, EventArgs e)
+
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            await CargarSolicitudes();
+        }
+
+        private async Task CargarSolicitudes()
         {
             try
             {
-                if (_canSeleccionado == null)
+                string cedula = Preferences.Get("CedulaPaseador", string.Empty);
+                if (string.IsNullOrEmpty(cedula))
                 {
-                    await DisplayAlert("Error", "Seleccione un can para pasear.", "OK");
+                    await DisplayAlert("Error", "No se encontró la cédula del paseador.", "OK");
                     return;
                 }
 
-                Debug.WriteLine("=== Intentando recuperar información del paseador ===");
+                var nuevasSolicitudes = await _apiService.GetSolicitudesPaseadorAsync(cedula);
 
-                var celularPaseador = Preferences.Get("CelularPaseador", null);
-                var nombrePaseador = Preferences.Get("NombrePaseador", null);
-                Debug.WriteLine($"Celular recuperado: {celularPaseador}");
-                Debug.WriteLine($"Nombre recuperado: {nombrePaseador}");
+                // Ordenar las nuevas solicitudes por fecha
+                nuevasSolicitudes = nuevasSolicitudes.OrderByDescending(s => s.FechaSolicitud).ToList();
 
-                if (string.IsNullOrEmpty(celularPaseador) || string.IsNullOrEmpty(nombrePaseador))
+                foreach (var nuevaSolicitud in nuevasSolicitudes)
                 {
-                    Debug.WriteLine("ERROR: No se encontró la información del paseador en las preferencias");
-                    await DisplayAlert("Error", "No se pudo recuperar la información del paseador.", "OK");
+                    // Verificar si la solicitud ya existe
+                    var solicitudExistente = _solicitudes.FirstOrDefault(s => s.IdSolicitud == nuevaSolicitud.IdSolicitud);
+
+                    if (solicitudExistente == null)
+                    {
+                        // Si es una nueva solicitud, configurar sus propiedades
+                        nuevaSolicitud.MostrarBotonesRespuesta = true;
+                        nuevaSolicitud.MostrarBotonesPaseo = false;
+                        nuevaSolicitud.PuedeIniciar = false;
+                        nuevaSolicitud.PuedeFinalizar = false;
+
+                        // Convertir fechas a hora de Ecuador (UTC-5)
+                        nuevaSolicitud.FechaSolicitud = TimeZoneInfo.ConvertTimeFromUtc(
+                            nuevaSolicitud.FechaSolicitud,
+                            TimeZoneInfo.CreateCustomTimeZone(
+                                "Ecuador Time",
+                                new TimeSpan(-5, 0, 0),
+                                "Ecuador Time",
+                                "Ecuador Time"
+                            )
+                        );
+
+                        _solicitudes.Add(nuevaSolicitud);
+                    }
+                    else
+                    {
+                        // Si la solicitud ya existe, actualizar su estado si es necesario
+                        ActualizarEstadoBotones(solicitudExistente);
+                    }
+                }
+
+                // Ordenar la colección completa
+                var solicitudesOrdenadas = new ObservableCollection<SolicitudPaseoResponseDto>(
+                    _solicitudes.OrderByDescending(s => s.FechaSolicitud)
+                );
+                _solicitudes = solicitudesOrdenadas;
+                SolicitudesListView.ItemsSource = _solicitudes;
+
+                // Guardar el estado actual en las preferencias
+                GuardarSolicitudes();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error al cargar solicitudes: {ex.Message}");
+                await DisplayAlert("Error", "No se pudieron cargar las solicitudes.", "OK");
+            }
+        }
+        private void GuardarSolicitudes()
+        {
+            try
+            {
+                var solicitudesJson = JsonConvert.SerializeObject(_solicitudes);
+                Preferences.Set("SolicitudesPaseador", solicitudesJson);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error al guardar solicitudes: {ex.Message}");
+            }
+        }
+
+        private async void OnEliminarClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                var solicitud = (SolicitudPaseoResponseDto)((Button)sender).CommandParameter;
+
+                bool confirmar = await DisplayAlert("Confirmar",
+                    "¿Estás seguro de que deseas eliminar esta solicitud?",
+                    "Sí", "No");
+
+                if (confirmar)
+                {
+                    _solicitudes.Remove(solicitud);
+                    GuardarSolicitudes();
+                    await DisplayAlert("Éxito", "Solicitud eliminada correctamente.", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error al eliminar solicitud: {ex.Message}");
+                await DisplayAlert("Error", "No se pudo eliminar la solicitud.", "OK");
+            }
+        }
+
+
+        private async void OnAceptarClicked(object sender, EventArgs e)
+        {
+            var solicitud = (SolicitudPaseoResponseDto)((Button)sender).CommandParameter;
+            await ResponderSolicitud(solicitud, true);
+            GuardarSolicitudes();
+        }
+
+        private async void OnRechazarClicked(object sender, EventArgs e)
+        {
+            var solicitud = (SolicitudPaseoResponseDto)((Button)sender).CommandParameter;
+            await ResponderSolicitud(solicitud, false);
+            GuardarSolicitudes();
+        }
+
+        private async void OnIniciarPaseoClicked(object sender, EventArgs e)
+        {
+            var solicitud = (SolicitudPaseoResponseDto)((Button)sender).CommandParameter;
+            solicitud.Estado = "En Progreso";
+            solicitud.PuedeIniciar = false;
+            solicitud.PuedeFinalizar = true;
+            solicitud.MostrarBotonesPaseo = true;
+            GuardarSolicitudes();
+            await DisplayAlert("Éxito", $"Paseo {solicitud.IdSolicitud} iniciado.", "OK");
+            
+        }
+
+        private async void OnFinalizarPaseoClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                IsBusy = true;
+                var solicitud = (SolicitudPaseoResponseDto)((Button)sender).CommandParameter;
+
+                if (solicitud == null)
+                {
+                    await DisplayAlert("Error", "No se encontró la información de la solicitud.", "OK");
                     return;
                 }
 
-                Debug.WriteLine($"Información del paseador recuperada exitosamente: {nombrePaseador}, {celularPaseador}");
+                string cedulaPaseador = Preferences.Get("CedulaPaseador", string.Empty);
 
-                var mensaje = $"Hola, me llamo {nombrePaseador} quiero pasear a tu can {_canSeleccionado.NombreCanino}.\nContactame al siguiente número por favor: ";
-
-                // Enviar la notificación a través de la API
-                var (exito, message) = await _apiService.EnviarNotificacionAsync(_canSeleccionado.IdCanino, mensaje, celularPaseador);
-
-                if (exito)
+                if (string.IsNullOrEmpty(cedulaPaseador))
                 {
-                    await DisplayAlert("Éxito", message, "OK");
+                    await DisplayAlert("Error", "No se encontró la cédula del paseador en las preferencias.", "OK");
+                    return;
+                }
+
+                // Obtener el ID de paseo a partir del ID de solicitud
+                var idPaseo = await _apiService.ObtenerIdPaseoPorIdSolicitudAsync(solicitud.IdSolicitud);
+
+                if (!idPaseo.HasValue)
+                {
+                    await DisplayAlert("Error", "No se encontró un paseo asociado a esta solicitud.", "OK");
+                    return;
+                }
+
+                var (success, message) = await _apiService.FinalizarPaseoAsync(idPaseo.Value, cedulaPaseador);
+
+                if (success)
+                {
+                    solicitud.Estado = "Finalizado";
+                    ActualizarEstadoBotones(solicitud); // Actualiza los botones y el estado de la solicitud
+                    await DisplayAlert("Éxito", $"Paseo {idPaseo} finalizado correctamente.", "OK");
                 }
                 else
                 {
@@ -81,11 +287,111 @@ namespace AllkuApp.Vista
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error al procesar la notificación: {ex.Message}");
-                await DisplayAlert("Error", "Ocurrió un error al procesar la solicitud.", "OK");
+                Debug.WriteLine($"Error al finalizar el paseo: {ex}");
+                await DisplayAlert("Error", $"Error al finalizar el paseo: {ex.Message}", "OK");
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
 
+
+        private async Task ResponderSolicitud(SolicitudPaseoResponseDto solicitud, bool aceptada)
+        {
+            try
+            {
+                string cedula = Preferences.Get("CedulaPaseador", string.Empty);
+                if (string.IsNullOrEmpty(cedula))
+                {
+                    await DisplayAlert("Error", "No se encontró la cédula del paseador.", "OK");
+                    return;
+                }
+
+                var resultado = await _apiService.ResponderSolicitudAsync(solicitud.IdSolicitud, cedula, aceptada);
+                if (resultado)
+                {
+                    if (aceptada)
+                    {
+                        //obtenemos datos desde preferences
+                        string nombrePaseador = Preferences.Get("NombrePaseador", string.Empty);
+                        string celularPaseador = Preferences.Get("CelularPaseador", string.Empty);
+
+                        var caninos = await _apiService.GetCaninesAsync();
+                        var canino = caninos?.FirstOrDefault(c => c.NombreCanino == solicitud.NombreCanino);
+
+                    if (canino != null)
+                    {
+                        string whatsappLink = $"https://wa.me/+593{celularPaseador}";
+                            string mensajeNotificacion = $"Tu solicitud fue aceptada por {nombrePaseador}. Click para contactar: <b>{celularPaseador}</b>";
+
+
+                            await _apiService.EnviarNotificacionAsync(
+                            canino.IdCanino,
+                            mensajeNotificacion,
+                            cedula);
+                    }
+
+
+                        await DisplayAlert("Éxito", "Solicitud aceptada. Ahora puedes iniciar el paseo.", "OK");
+
+                        // Actualizar la UI en el hilo principal
+                        MainThread.BeginInvokeOnMainThread(() =>
+                        {
+                            // Actualizar solo la solicitud aceptada
+                            var solicitudExistente = _solicitudes.FirstOrDefault(s => s.IdSolicitud == solicitud.IdSolicitud);
+                            if (solicitudExistente != null)
+                            {
+                                solicitudExistente.Estado = "Aceptada";
+                                solicitudExistente.MostrarBotonesRespuesta = false;
+                                solicitudExistente.MostrarBotonesPaseo = true;
+                                solicitudExistente.PuedeIniciar = true;
+                                solicitudExistente.PuedeFinalizar = false;
+                            }
+                        });
+                    }
+                    else
+                    {
+                        // Actualizar solicitud rechazada
+                        MainThread.BeginInvokeOnMainThread(() =>
+                        {
+                            var solicitudExistente = _solicitudes.FirstOrDefault(s => s.IdSolicitud == solicitud.IdSolicitud);
+                            if (solicitudExistente != null)
+                            {
+                                solicitudExistente.Estado = "Rechazada";
+                                solicitudExistente.MostrarBotonesRespuesta = false;
+                                solicitudExistente.MostrarBotonesPaseo = false;
+                            }
+                        });
+
+                        var caninos = await _apiService.GetCaninesAsync();
+                        var canino = caninos?.FirstOrDefault(c => c.NombreCanino == solicitud.NombreCanino);
+
+                        if (canino != null)
+                        {
+                            var notificacionResultado = await _apiService.EnviarNotificacionAsync(
+                                canino.IdCanino,
+                                "Tu solicitud fue rechazada. Puedes intentarlo con otro paseador.",
+                                cedula);
+
+                            if (notificacionResultado.Item1)
+                            {
+                                await DisplayAlert("Éxito", "Solicitud rechazada y notificación enviada al dueño.", "OK");
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    await DisplayAlert("Error", "No se pudo procesar la solicitud.", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+                await DisplayAlert("Error", "Ocurrió un error al procesar la solicitud.", "OK");
+            }
+        }
         private async void OnMenuPaseador_Clicked(object sender, EventArgs e)
         {
             await Navigation.PushAsync(new MenuPaseadorPage());

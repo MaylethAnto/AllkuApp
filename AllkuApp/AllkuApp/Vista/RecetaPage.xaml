@@ -1,26 +1,128 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:local="clr-namespace:AllkuApp.Vista"
              x:Class="AllkuApp.Vista.RecetaPage"
-             Title="Detalles de las Recetas">
+             Title="Recetas"
+             BackgroundColor="#F5F5F5"
+             NavigationPage.HasNavigationBar="False">
 
-    <ContentPage.Content>
-        <StackLayout Padding="10">
-            <ListView x:Name="RecetasListView" HasUnevenRows="True">
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <ViewCell>
-                            <StackLayout Padding="5">
-                                <Label Text="{Binding nombre_receta}" FontSize="Medium" />
-                                <Label Text="{Binding descripcion_receta}" FontSize="Small" />
-                                <Image Source="{Binding foto_receta}" HeightRequest="50" WidthRequest="50" />
-                                <Label Text="{Binding id_canino}" FontSize="Small" />
-                            </StackLayout>
-                        </ViewCell>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-        </StackLayout>
-    </ContentPage.Content>
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Style x:Key="HeaderLabelStyle" TargetType="Label">
+                <Setter Property="FontSize" Value="24"/>
+                <Setter Property="FontAttributes" Value="Bold"/>
+                <Setter Property="TextColor" Value="#333333"/>
+                <Setter Property="VerticalOptions" Value="Center"/>
+            </Style>
+
+            <Style x:Key="RecetaTitleStyle" TargetType="Label">
+                <Setter Property="FontSize" Value="18"/>
+                <Setter Property="FontAttributes" Value="Bold"/>
+                <Setter Property="TextColor" Value="#2C3E50"/>
+                <Setter Property="Margin" Value="0,0,0,5"/>
+            </Style>
+
+            <Style x:Key="RecetaDescriptionStyle" TargetType="Label">
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="TextColor" Value="#666666"/>
+                <Setter Property="LineBreakMode" Value="TailTruncation"/>
+                <Setter Property="MaxLines" Value="3"/>
+            </Style>
+
+            <Style x:Key="RecetaCardStyle" TargetType="Frame">
+                <Setter Property="BackgroundColor" Value="White"/>
+                <Setter Property="CornerRadius" Value="10"/>
+                <Setter Property="Margin" Value="0,0,0,15"/>
+                <Setter Property="Padding" Value="15"/>
+                <Setter Property="HasShadow" Value="True"/>
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Padding="20,40,20,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <ImageButton 
+                Grid.Column="0"
+                Source="back_arrow_white.png"
+                HeightRequest="24"
+                WidthRequest="24"
+                BackgroundColor="Black"
+                VerticalOptions="Center"
+                HorizontalOptions="Start"
+                Clicked="OnBackButtonClicked"
+                Margin="0,0,15,0"/>
+
+            <Label 
+                Grid.Column="1"
+                Text="Mis Recetas"
+                Style="{StaticResource HeaderLabelStyle}"/>
+        </Grid>
+
+        <!-- Content -->
+        <RefreshView 
+            Grid.Row="1"
+            x:Name="RefreshView" 
+            Command="{Binding RefreshCommand}">
+
+            <ScrollView>
+                <StackLayout Padding="20,0,20,20">
+                    <ActivityIndicator 
+                        x:Name="LoadingIndicator" 
+                        IsRunning="False" 
+                        IsVisible="False"
+                        Color="#4CAF50"
+                        HeightRequest="50"
+                        VerticalOptions="CenterAndExpand"/>
+
+                    <ListView 
+                        x:Name="RecetasListView"
+                        HasUnevenRows="True"
+                        SeparatorVisibility="None"
+                        SelectionMode="Single"
+                        BackgroundColor="Transparent">
+
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <ViewCell>
+                                    <Frame Style="{StaticResource RecetaCardStyle}">
+                                        <StackLayout Spacing="10">
+                                            <Label 
+                                                Text="{Binding nombre_receta}"
+                                                Style="{StaticResource RecetaTitleStyle}"/>
+
+                                            <Label 
+                                                Text="{Binding descripcion_receta}"
+                                                Style="{StaticResource RecetaDescriptionStyle}"/>
+
+                                            <Frame 
+                                                IsClippedToBounds="True"
+                                                Padding="0"
+                                                CornerRadius="8"
+                                                IsVisible="{Binding HasImage}">
+                                                <Image 
+                                                    Source="{Binding ImageSource}"
+                                                    HeightRequest="180"
+                                                    Aspect="AspectFill"/>
+                                            </Frame>
+                                        </StackLayout>
+                                    </Frame>
+                                </ViewCell>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </StackLayout>
+            </ScrollView>
+        </RefreshView>
+    </Grid>
 </ContentPage>

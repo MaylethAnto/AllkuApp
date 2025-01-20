@@ -1,0 +1,248 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllkuApp.Vista.SOSPage"
+             BackgroundColor="White"
+             NavigationPage.HasNavigationBar="False">
+
+    <ContentPage.Resources>
+        <!-- Estilo global para Label -->
+        <Style TargetType="Label">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="TextColor" Value="Black" />
+        </Style>
+
+        <!-- Estilo global para Frame -->
+        <Style TargetType="Frame">
+            <Setter Property="Margin" Value="10" />
+            <Setter Property="Padding" Value="10" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="BorderColor" Value="White" />
+            <Setter Property="HasShadow" Value="True" />
+            <Setter Property="BackgroundColor" Value="White" />
+        </Style>
+
+        <!-- Estilo para los títulos de las clínicas -->
+        <Style x:Key="TitleLabelStyle" TargetType="Label">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="TextColor" Value="Black" />
+        </Style>
+
+        <!-- Estilo para el encabezado con botón de retroceso -->
+        <Style x:Key="HeaderGridStyle" TargetType="Grid">
+            <Setter Property="Padding" Value="10" />
+            <Setter Property="ColumnSpacing" Value="10" />
+        </Style>
+
+        <!-- Estilo para el botón de retroceso -->
+        <Style x:Key="BackButtonStyle" TargetType="ImageButton">
+            <Setter Property="HeightRequest" Value="24" />
+            <Setter Property="WidthRequest" Value="26" />
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="VerticalOptions" Value="Center" />
+            <Setter Property="HorizontalOptions" Value="Start" />
+        </Style>
+
+        <!-- Estilo para el título del encabezado -->
+        <Style x:Key="HeaderTitleStyle" TargetType="Label">
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="HorizontalOptions" Value="CenterAndExpand" />
+            <Setter Property="TextColor" Value="Black" />
+            <Setter Property="VerticalOptions" Value="Center" />
+            <Setter Property="HorizontalTextAlignment" Value="Center" />
+        </Style>
+    </ContentPage.Resources>
+
+    <ContentPage.Content>
+        <ScrollView>
+            <StackLayout Padding="20" Spacing="20">
+
+                <!-- Encabezado con botón de retroceso -->
+                <Frame CornerRadius="10" BackgroundColor="#E9ECEF" Margin="0">
+                    <Grid Style="{StaticResource HeaderGridStyle}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ImageButton 
+                            Grid.Column="0"
+                            Source="back_arrow.png"
+                            Style="{StaticResource BackButtonStyle}"
+                            Clicked="OnBackButtonClicked" />
+
+                        <Label Grid.Column="1"
+                               Text="Clínicas Veterinarias"
+                               Style="{StaticResource HeaderTitleStyle}" />
+                    </Grid>
+                </Frame>
+
+                <!-- Lista de clínicas veterinarias -->
+                <StackLayout Spacing="10">
+                    <!-- Clínica template -->
+                    <Frame>
+                        <StackLayout>
+                            <Label Text="Mi Pet Clinic Veterinaria Sur de Quito" Style="{StaticResource TitleLabelStyle}">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnClinicaTapped" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="099 893 4269">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnPhoneTapped" CommandParameter="0998934269" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="Mariscal Sucre, y, Quito 170528" LineBreakMode="WordWrap" />
+                        </StackLayout>
+                    </Frame>
+
+                    <Frame>
+                        <StackLayout>
+                            <Label Text="Hospital Veterinario Argos" Style="{StaticResource TitleLabelStyle}">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnClinicaTapped" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="02 222 4365">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnPhoneTapped" CommandParameter="022224365" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="E11-58 y, Av. Cristóbal Colón, Quito 170109" LineBreakMode="WordWrap" />
+                        </StackLayout>
+                    </Frame>
+
+                    <Frame>
+                        <StackLayout>
+                            <Label Text="Veterinaria 24 HORAS, Entre Garras y Bugotes Sur de Quito" Style="{StaticResource TitleLabelStyle}">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnClinicaTapped" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="098 725 4016">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnPhoneTapped" CommandParameter="0987254016" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="Francisco Rueda Oe4N, y S21, Quito 170606" LineBreakMode="WordWrap" />
+                        </StackLayout>
+                    </Frame>
+
+                    <Frame>
+                        <StackLayout>
+                            <Label Text="Hospital Veterinaria Somalí" Style="{StaticResource TitleLabelStyle}">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnClinicaTapped" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="02 308 1113">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnPhoneTapped" CommandParameter="023081113" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="Junto al Colegio Tecnológico Sucre, Teodoro Gómez de la Torre S13 162 y, Quito 170601" LineBreakMode="WordWrap" />
+                        </StackLayout>
+                    </Frame>
+
+                    <Frame>
+                        <StackLayout>
+                            <Label Text="Clinica VetService Veterinaria 24 Horas" Style="{StaticResource TitleLabelStyle}">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnClinicaTapped" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="096 964 8482">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnPhoneTapped" CommandParameter="0969648482" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="Joaquín Tipantuña S10-327, Quito 170602" LineBreakMode="WordWrap" />
+                        </StackLayout>
+                    </Frame>
+
+                    <Frame>
+                        <StackLayout>
+                            <Label Text="Hospital Veterinario Lucky" Style="{StaticResource TitleLabelStyle}">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnClinicaTapped" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="02 234 8678">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnPhoneTapped" CommandParameter="022348678" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="Lola Quintana 183, Quito 170156" LineBreakMode="WordWrap" />
+                        </StackLayout>
+                    </Frame>
+
+                    <Frame>
+                        <StackLayout>
+                            <Label Text="All Pets" Style="{StaticResource TitleLabelStyle}">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnClinicaTapped" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="02 244 1286">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnPhoneTapped" CommandParameter="022441286" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="Av. Portugal E10-264, Quito 170102" LineBreakMode="WordWrap" />
+                        </StackLayout>
+                    </Frame>
+
+                    <Frame>
+                        <StackLayout>
+                            <Label Text="Veterinaria Manimal" Style="{StaticResource TitleLabelStyle}">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnClinicaTapped" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="02 207 3190">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnPhoneTapped" CommandParameter="022073190" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="Calle Iván Montúfar, y, Quito 170409" LineBreakMode="WordWrap" />
+                        </StackLayout>
+                    </Frame>
+
+                    <Frame>
+                        <StackLayout>
+                            <Label Text="Doctorvet Christian Saltos" Style="{StaticResource TitleLabelStyle}">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnClinicaTapped" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="099 262 3496">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnPhoneTapped" CommandParameter="0992623496" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="Diego de Almagro 32-263, Quito 170102" LineBreakMode="WordWrap" />
+                        </StackLayout>
+                    </Frame>
+
+                    <Frame>
+                        <StackLayout>
+                            <Label Text="Hospital Veterinario Vetcarecenter" Style="{StaticResource TitleLabelStyle}">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnClinicaTapped" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="099 994 1093">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnPhoneTapped" CommandParameter="0999941093" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Text="Av. La Coruña 26-242 y, Quito 170523" LineBreakMode="WordWrap" />
+                        </StackLayout>
+                    </Frame>
+                </StackLayout>
+            </StackLayout>
+        </ScrollView>
+    </ContentPage.Content>
+</ContentPage>

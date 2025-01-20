@@ -67,6 +67,10 @@
                        CornerRadius="20" 
                        Padding="20" 
                        HasShadow="False">
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnTarjetaClicked"/>
+                    </Frame.GestureRecognizers>
+
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="120"/>
@@ -168,7 +172,7 @@
                                    FontSize="12"/>
                         </StackLayout>
                         <Frame.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnRecetasClicked"/>
+                            <TapGestureRecognizer Tapped="OnRecetasClicked"/> 
                         </Frame.GestureRecognizers>
                     </Frame>
 
@@ -189,6 +193,19 @@
                         <Frame.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnGPSClicked"/>
                         </Frame.GestureRecognizers>
+                  
+        
+                        <!-- Efecto visual al tocar -->
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup Name="CommonStates">
+                                <VisualState Name="Normal"/>
+                                <VisualState Name="Selected">
+                                    <VisualState.Setters>
+                                        <Setter Property="BackgroundColor" Value="#f5f5f5"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
                     </Frame>
                 </Grid>
             </StackLayout>
@@ -198,7 +215,12 @@
         <StackLayout VerticalOptions="End" Grid.Row="2" Padding="20">
             <Label Text="¿Encontraste un can sin hogar? Contáctanos"
                    HorizontalOptions="Center"
-                   Margin="0,20"/>
+                   Margin="0,20">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer 
+                         Command="{Binding OpenWhatsAppCommand}" />
+                </Label.GestureRecognizers>
+            </Label>
 
             <Grid ColumnSpacing="20">
                 <Grid.ColumnDefinitions>
@@ -209,7 +231,8 @@
                 <ImageButton Source="sos_icon.png"
                              BackgroundColor="Transparent"
                              HeightRequest="40"
-                             Grid.Column="0"/>
+                             Grid.Column="0"
+                             Clicked="OnSOSButton_Clicked"/>
 
                 <ImageButton Source="perfil_icon.png"
                              BackgroundColor="Transparent"

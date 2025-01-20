@@ -1,131 +1,103 @@
 ﻿using System;
+using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Xamarin.Essentials;
 using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
 using AllkuApp.Modelo;
-using AllkuApp.Servicios;
-using Plugin.Media;
-using Plugin.Media.Abstractions;
-using AllkuApp.Services;
 
 namespace AllkuApp.Vista
 {
-    [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class RecetaFormulario : ContentPage
     {
-        private readonly RecetaService _recetaService;
-        private string _fotoPath;
+        private readonly HttpClient _httpClient;
+        private byte[] _fotoRecetaBytes;
+        private bool _isSaving;
 
         public RecetaFormulario()
         {
             InitializeComponent();
-            _recetaService = new RecetaService();
+            _httpClient = new HttpClient();
+            _httpClient.BaseAddress = new Uri("https://allkuapi.sytes.net/api/Recetas");
         }
 
-        /// <summary>
-        /// Maneja el evento de clic para seleccionar una foto.
-        /// </summary>
-        private async void OnSeleccionarFotoClicked(object sender, EventArgs e)
+        private async void OnBackButtonClicked(object sender, EventArgs e)
         {
-            if (!CrossMedia.IsSupported || !CrossMedia.Current.IsPickPhotoSupported)
-            {
-                await DisplayAlert("Error", "Seleccionar foto no está soportado en este dispositivo.", "OK");
-                return;
-            }
+            // Navegar de regreso a la página anterior
+            await Navigation.PopAsync();
+        }
 
-            var photo = await CrossMedia.Current.PickPhotoAsync(new PickMediaOptions
+        private async void OnSelectPhotoClicked(object sender, EventArgs e)
+        {
+            try
             {
-                PhotoSize = PhotoSize.Medium,
-            });
-
-            if (photo != null)
-            {
-                _fotoPath = photo.Path;
-                FotoRecetaImage.Source = ImageSource.FromFile(_fotoPath);
-
-                using (var stream = photo.GetStream())
+                var photo = await MediaPicker.PickPhotoAsync();
+                if (photo != null)
                 {
-                    using (var memoryStream = new System.IO.MemoryStream())
-                    {
-                        stream.CopyTo(memoryStream);
-                        var imageBytes = memoryStream.ToArray();
-                        FotoRecetaEntry.Text = Convert.ToBase64String(imageBytes);
-                    }
+                    var stream = await photo.OpenReadAsync();
+                    var memoryStream = new MemoryStream();
+                    await stream.CopyToAsync(memoryStream);
+                    _fotoRecetaBytes = memoryStream.ToArray();
+
+                    // Mostrar la imagen seleccionada
+                    FotoRecetaImage.Source = ImageSource.FromStream(() => new MemoryStream(_fotoRecetaBytes));
                 }
             }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", "No se pudo cargar la imagen", "OK");
+            }
         }
 
-        /// <summary>
-        /// Maneja el evento de clic para guardar una receta.
-        /// </summary>
-        private async void OnGuardarRecetaClicked(object sender, EventArgs e)
+        private async void OnSaveClicked(object sender, EventArgs e)
         {
-            if (ValidarCampos())
+            if (_isSaving) return;
+            _isSaving = true;
+
+            try
             {
-                var nuevaReceta = new CreateRecetaRequest
+                if (string.IsNullOrWhiteSpace(NombreRecetaEntry.Text) ||
+                    string.IsNullOrWhiteSpace(DescripcionRecetaEditor.Text) ||
+                    string.IsNullOrWhiteSpace(IdCaninoEntry.Text))
                 {
-                    nombre_receta = NombreRecetaEntry.Text,
-                    descripcion_receta = DescripcionRecetaEditor.Text,
-                    foto_receta = Convert.FromBase64String(FotoRecetaEntry.Text),
-                    id_canino = int.Parse(IdCaninoEntry.Text)
-                };
+                    await DisplayAlert("Error", "Por favor complete todos los campos", "OK");
+                    return;
+                }
 
-                var result = await _recetaService.CreateRecetaAsync(nuevaReceta);
+                var content = new MultipartFormDataContent();
+                content.Add(new StringContent(NombreRecetaEntry.Text), "nombre_receta");
+                content.Add(new StringContent(DescripcionRecetaEditor.Text), "descripcion_receta");
+                content.Add(new StringContent(IdCaninoEntry.Text), "id_canino");
 
-                if (result)
+                if (_fotoRecetaBytes != null)
                 {
-                    MessagingCenter.Send(this, "RecetaCreada", nuevaReceta);
-                    await DisplayAlert("Éxito", "Receta registrada correctamente.", "OK");
-                    LimpiarFormulario();
+                    var imageContent = new ByteArrayContent(_fotoRecetaBytes);
+                    imageContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+                    content.Add(imageContent, "foto_receta", "foto.jpg");
+                }
+
+                var response = await _httpClient.PostAsync("Recetas", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await DisplayAlert("Éxito", "Receta guardada correctamente", "OK");
+                    await Navigation.PopAsync();
                 }
                 else
                 {
-                    await DisplayAlert("Error", "Ocurrió un error al guardar la receta.", "OK");
+                    await DisplayAlert("Error", "No se pudo guardar la receta", "OK");
                 }
             }
-            else
+            catch (Exception ex)
             {
-                await DisplayAlert("Error", "Por favor, complete todos los campos.", "OK");
+                await DisplayAlert("Error", "Ocurrió un error al guardar la receta", "OK");
             }
-        }
-
-        private void OnCancelarClicked(object sender, EventArgs e)
-        {
-            // Lógica para manejar el evento de clic en el botón "Cancelar"
-            // Por ejemplo, limpiar el formulario o navegar a otra página
-            LimpiarFormulario(); // Método para limpiar el formulario
-            DisplayAlert("Cancelado", "Operación cancelada", "OK");
-        }
-
-        /// <summary>
-        /// Valida que todos los campos necesarios estén completos.
-        /// </summary>
-        /// <returns>True si todos los campos son válidos, de lo contrario False.</returns>
-        private bool ValidarCampos()
-        {
-            return !string.IsNullOrWhiteSpace(NombreRecetaEntry.Text) &&
-                   !string.IsNullOrWhiteSpace(DescripcionRecetaEditor.Text) &&
-                   !string.IsNullOrWhiteSpace(FotoRecetaEntry.Text) &&
-                   !string.IsNullOrWhiteSpace(IdCaninoEntry.Text);
-        }
-
-        /// <summary>
-        /// Limpia el formulario después de guardar la receta.
-        /// </summary>
-        private void LimpiarFormulario()
-        {
-            NombreRecetaEntry.Text = string.Empty;
-            DescripcionRecetaEditor.Text = string.Empty;
-            FotoRecetaEntry.Text = string.Empty;
-            FotoRecetaImage.Source = null;
-            IdCaninoEntry.Text = string.Empty;
-        }
-
-        /// <summary>
-        /// Maneja el evento de clic para volver a la página anterior.
-        /// </summary>
-        private async void OnBackButtonClicked(object sender, EventArgs e)
-        {
-            await Navigation.PopAsync();
+            finally
+            {
+                _isSaving = false;
+            }
         }
     }
 }

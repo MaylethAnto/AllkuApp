@@ -12,6 +12,7 @@ using Xamarin.Forms.Xaml;
 using ModeloReceta = AllkuApp.Modelo.Receta;
 using ServicioReceta = AllkuApp.Services.Receta;
 using CreateRecetaRequest = AllkuApp.Services.CreateRecetaRequest;
+using AllkuApp.Modelo;
 
 namespace AllkuApp.Vista
 {
@@ -21,6 +22,9 @@ namespace AllkuApp.Vista
         private readonly ApiService _apiService;
         private List<ModeloReceta> _recetas;
         private readonly RecetaService _recetaService;
+        private List<Canino> caninos;
+        private int currentIndex = 0;
+
 
         public MainPage()
         {
@@ -151,6 +155,59 @@ namespace AllkuApp.Vista
             }
         }
 
+        private List<Canino> ConvertirCaninos(List<CaninoDto> caninosDto)
+        {
+            var caninosModelo = new List<Canino>();
+            foreach (var caninoDto in caninosDto)
+            {
+                caninosModelo.Add(new Canino
+                {
+                    IdCanino = caninoDto.IdCanino,
+                    NombreCanino = caninoDto.NombreCanino,
+                    RazaCanino = caninoDto.RazaCanino,
+                    EdadCanino = caninoDto.EdadCanino,
+                    PesoCanino = (decimal)caninoDto.PesoCanino, // Conversión explícita a decimal
+                    FotoCanino = caninoDto.FotoCanino
+                });
+            }
+            return caninosModelo;
+        }
+
+        private void MostrarCanino(int index)
+        {
+            if (index >= 0 && index < caninos.Count)
+            {
+                var canino = caninos[index];
+
+                // Asignar datos base (no modificables)
+                NombreCanino.Text = canino.NombreCanino;
+                RazaCanino.Text = $"Raza: {canino.RazaCanino}";
+
+                // Asignar datos actualizables (verificar si hay valores en Preferences)
+                var edadGuardada = Preferences.Get("EdadCanino", -1);
+                var pesoGuardado = (decimal)Preferences.Get("PesoCanino", -1.0); // Conversión explícita a decimal
+                var fotoGuardada = Preferences.Get("FotoCanino", string.Empty);
+
+                // Usar valores de Preferences si existen, sino usar los de la base de datos
+                EdadCanino.Text = $"Edad: {(edadGuardada != -1 ? edadGuardada : canino.EdadCanino)} años";
+                PesoCanino.Text = $"Peso: {(pesoGuardado != -1.0m ? pesoGuardado : canino.PesoCanino)} kg"; // Formatear a decimal
+
+                if (!string.IsNullOrEmpty(fotoGuardada))
+                {
+                    var fotoBytes = Convert.FromBase64String(fotoGuardada);
+                    FotoCanino.Source = ImageSource.FromStream(() => new MemoryStream(fotoBytes));
+                }
+                else if (canino.FotoCanino != null && canino.FotoCanino.Length > 0)
+                {
+                    FotoCanino.Source = ImageSource.FromStream(() => new MemoryStream(canino.FotoCanino));
+                }
+
+                Preferences.Set("CaninoId", canino.IdCanino);
+            }
+        }
+
+
+
         private async void CheckForNotifications()
         {
             var tieneNotificacion = await _apiService.CheckForNotificationsAsync();
@@ -188,7 +245,24 @@ namespace AllkuApp.Vista
 
         private async void OnHistorialClinicoClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new RegistroHistorialPage());
+            try
+            {
+                // Obtener el ID del canino desde Preferences que fue guardado en CargarDatosCanino
+                int idCanino = Preferences.Get("CaninoId", 0);
+
+                if (idCanino == 0)
+                {
+                    await DisplayAlert("Error", "No se pudo obtener la información del canino", "OK");
+                    return;
+                }
+
+                // Navegar directamente a la página de crear historial
+                await Navigation.PushAsync(new CrearHistorialPage(idCanino));
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Ocurrió un error: {ex.Message}", "OK");
+            }
         }
 
         private async void OnGPSClicked(object sender, EventArgs e)
@@ -209,36 +283,10 @@ namespace AllkuApp.Vista
 
         private async void OnRecetasClicked(object sender, EventArgs e)
         {
-            Console.WriteLine($"Número de recetas: {_recetas.Count}");
-
-            if (_recetas.Count > 0)
-            {
-                var recetasCreateRequest = ConvertirRecetasARequest(_recetas);
-                await Navigation.PushAsync(new RecetaPage(recetasCreateRequest));
-            }
-            else
-            {
-                await DisplayAlert("Error", "No hay recetas registradas.", "OK");
-            }
+            // Navegar a la página que muestra las recetas
+            await Navigation.PushAsync(new RecetaPage());
         }
 
-        private List<CreateRecetaRequest> ConvertirRecetasARequest(List<ModeloReceta> recetas)
-        {
-            var recetasRequest = new List<CreateRecetaRequest>();
-            foreach (var receta in recetas)
-            {
-                recetasRequest.Add(new CreateRecetaRequest
-                {
-                    nombre_receta = receta.nombre_receta,
-                    descripcion_receta = receta.descripcion_receta,
-                    foto_receta = receta.foto_receta,
-                    id_canino = receta.id_canino
-                });
-            }
-
-            return recetasRequest;
-        }
-        
 
         private async void OnPerfilButtonClicked(object sender, EventArgs e)
         {
@@ -250,6 +298,21 @@ namespace AllkuApp.Vista
             if (logout)
             {
                 await Navigation.PopToRootAsync();
+            }
+        }
+
+        private async void OnSOSButton_Clicked(object sender, EventArgs e)
+        {
+            await Navigation.PushAsync(new SOSPage());
+        }
+
+        // Método para manejar el clic en la tarjeta
+        private void OnTarjetaClicked(object sender, EventArgs e)
+        {
+            if (caninos != null && caninos.Count > 0)
+            {
+                currentIndex = (currentIndex + 1) % caninos.Count;
+                MostrarCanino(currentIndex);
             }
         }
     }

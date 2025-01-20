@@ -2,164 +2,166 @@
 using System.Collections.ObjectModel;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
-using Xamarin.Essentials;
-using AllkuApp.Servicios;
-using System.Diagnostics;
-using System.Linq;
-using System.Net.Http;
-using System.Text.Json;
 using System.Threading.Tasks;
-using System.Collections.Generic;
+using AllkuApp.Servicios;
+using Xamarin.Essentials;
+using AllkuApp.Modelo;
+using System.Linq;
+using System.Diagnostics;
+using System.Net.Http;
 
 namespace AllkuApp.Vista
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class EjerciciosPage : ContentPage
     {
-        private Label _mensajeNoRecorridos;
-        public ObservableCollection<DistanciaRecorrida> Distancias { get; set; }
+        private bool _isFirstLoad = true;
+        private readonly bool _dataLoaded = false;
+        public ObservableCollection<DistanciaModel> Distancia { get; set; } = new ObservableCollection<DistanciaModel>();
+
         private readonly ApiService _apiService;
+        private bool _isLoading;
 
         public EjerciciosPage()
         {
             InitializeComponent();
-            Distancias = new ObservableCollection<DistanciaRecorrida>();
-            DistanciaListView.ItemsSource = Distancias;
             _apiService = new ApiService();
+            Distancia = new ObservableCollection<DistanciaModel>();
+            BindingContext = this;
 
-            // Crear el mensaje de no recorridos
-            _mensajeNoRecorridos = new Label
-            {
-                Text = "Aún no hay recorridos registrados. ¡Registra tu primer recorrido!",
-                TextColor = Color.FromHex("#666666"),
-                HorizontalOptions = LayoutOptions.Center,
-                VerticalOptions = LayoutOptions.Center,
-                Margin = new Thickness(0, 20, 0, 0),
-                IsVisible = false
-            };
-
-            // Encontrar el StackLayout correcto dentro de la jerarquía
-            if (Content is Grid mainGrid &&
-                mainGrid.Children[1] is ScrollView scrollView &&
-                scrollView.Content is StackLayout stackLayout)
-            {
-                stackLayout.Children.Add(_mensajeNoRecorridos);
-            }
-            else
-            {
-                Debug.WriteLine("No se pudo encontrar el StackLayout para agregar el mensaje");
-            }
-
-            // Cargar el historial al iniciar la página
-            _ = CargarHistorialRecorridos();
         }
 
-        protected override void OnAppearing()
+        protected override async void OnAppearing()
         {
             base.OnAppearing();
-            _ = CargarHistorialRecorridos(); // Usamos _ = para evitar warning de Task no esperado
+            if (_isFirstLoad)  // Solo cargar la primera vez
+            {
+                await CargarPaseosFinalizados();
+                _isFirstLoad = false;
+            }
         }
 
-        private async Task CargarHistorialRecorridos()
+        private async Task CargarPaseosFinalizados()
         {
+            if (_isLoading) return;
+            _isLoading = true;
+
             try
             {
-                int idCanino = Preferences.Get("CaninoId", -1);
-                if (idCanino != -1)
+                var idCanino = Preferences.Get("CaninoId", -1);
+                if (idCanino == -1)
                 {
-                    DateTime fechaHoraInicio = FechaInicio.Date.Add(HoraInicio.Time);
-                    DateTime fechaHoraFin = FechaFin.Date.Add(HoraFin.Time);
+                    await DisplayAlert("Error", "No se encontró el ID del canino.", "OK");
+                    return;
+                }
 
-                    // Suponiendo que devuelve un único HistorialRecorrido
-                    var historial = await _apiService.ObtenerHistorialRecorridosAsync();
+                var paseosFinalizados = await _apiService.ObtenerPaseosFinalizadosAsync(idCanino);
+                Debug.WriteLine($"Número de paseos recibidos: {paseosFinalizados?.Count ?? 0}");
 
-                    if (historial != null)
+                if (paseosFinalizados?.Any() == true)
+                {
+                    // Definir el TimeZoneInfo para Ecuador (UTC-5)
+                    var ecuadorZone = TimeZoneInfo.CreateCustomTimeZone(
+                        "Ecuador Time",
+                        new TimeSpan(-5, 0, 0),
+                        "Ecuador Time",
+                        "Ecuador Time");
+
+                    foreach (var paseo in paseosFinalizados)
                     {
-                        DistanciaListView.ItemsSource = new List<DistanciaRecorrida> { historial };
+                        // Convertir las fechas a hora de Ecuador
+                        var fechaInicioEcuador = TimeZoneInfo.ConvertTimeFromUtc(
+                            paseo.FechaInicio?.ToUniversalTime() ?? DateTime.UtcNow,
+                            ecuadorZone);
+
+                        var fechaFinEcuador = TimeZoneInfo.ConvertTimeFromUtc(
+                            paseo.FechaFin?.ToUniversalTime() ?? DateTime.UtcNow,
+                            ecuadorZone);
+
+                        var nuevoModelo = new DistanciaModel
+                        {
+                            FechaInicio = fechaInicioEcuador,
+                            FechaFin = fechaFinEcuador,
+                            DistanciaTotal = paseo.DistanciaKm ?? 0
+                        };
+
+                        MainThread.BeginInvokeOnMainThread(() =>
+                        {
+                            Distancia.Add(nuevoModelo);
+                        });
                     }
-                    else
-                    {
-                        await DisplayAlert("Información", "No hay recorridos registrados.", "OK");
-                    }
+                }
+                else
+                {
+                    await DisplayAlert("Información", "No hay paseos finalizados para mostrar.", "OK");
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error al cargar historial: {ex.Message}");
-                await DisplayAlert("Error", "No se pudo cargar el historial de recorridos.", "OK");
+                await DisplayAlert("Error", $"Hubo un error al cargar los paseos: {ex.Message}", "OK");
+                Debug.WriteLine($"Error: {ex.Message}");
+            }
+            finally
+            {
+                _isLoading = false;
             }
         }
 
 
+        // Asegúrate de desuscribirte cuando la página se destruya
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            MessagingCenter.Unsubscribe<object>(this, "PaseoFinalizado");
+        }
 
 
+        private async void OnElegirPaseadorClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                // Obtener paseadores disponibles
+                var paseadoresDisponibles = await _apiService.GetPaseadoresDisponiblesAsync();
+                if (paseadoresDisponibles?.Count > 0)
+                {
+                    var paseadorPage = new PaseadorSelectionPage(paseadoresDisponibles);
+                    paseadorPage.PaseadorSeleccionado += async (s, paseador) => {
+                        // Enviar solicitud al paseador
+                        var idCanino = Preferences.Get("CaninoId", -1);
+                        if (idCanino != -1)
+                        {
+                            var resultado = await _apiService.EnviarSolicitudPaseoAsync(new SolicitudPaseoDto
+                            {
+                                IdCanino = idCanino,
+                                CedulaPaseador = paseador.CedulaPaseador
+                            });
+
+                            if (resultado)
+                            {
+                                await DisplayAlert("Éxito", "Solicitud enviada al paseador.", "OK");
+                            }
+                            else
+                            {
+                                await DisplayAlert("Error", "No se pudo enviar la solicitud.", "OK");
+                            }
+                        }
+                    };
+                    await Navigation.PushModalAsync(paseadorPage);
+                }
+                else
+                {
+                    await DisplayAlert("Info", "No hay paseadores disponibles en este momento.", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", "No se pudieron cargar los paseadores disponibles.", "OK");
+            }
+        }
 
         private async void OnBackButtonClicked(object sender, EventArgs e)
         {
             await Navigation.PopAsync();
         }
-
-        private async void OnObtenerDistanciaClicked(object sender, EventArgs e)
-        {
-            // Validar fechas
-            if (FechaInicio.Date == FechaFin.Date && HoraInicio.Time >= HoraFin.Time)
-            {
-                await DisplayAlert("Error", "La hora de inicio debe ser anterior a la hora de fin en el mismo día.", "OK");
-                return;
-            }
-            else if (FechaInicio.Date > FechaFin.Date)
-            {
-                await DisplayAlert("Error", "La fecha de inicio no puede ser posterior a la fecha de fin.", "OK");
-                return;
-            }
-
-            // Combinar fecha y hora
-            DateTime fechaHoraInicio = FechaInicio.Date.Add(HoraInicio.Time);
-            DateTime fechaHoraFin = FechaFin.Date.Add(HoraFin.Time);
-
-            try
-            {
-                int idCanino = Preferences.Get("CaninoId", -1);
-                if (idCanino == -1)
-                {
-                    await DisplayAlert("Error", "No se encontró el ID del canino. Por favor, inicie sesión nuevamente.", "OK");
-                    return;
-                }
-
-                // Mostrar indicador de carga
-                IsBusy = true;
-
-                var distancia = await _apiService.ObtenerDistanciaRecorridaAsync(idCanino, fechaHoraInicio, fechaHoraFin);
-
-                if (distancia != null)
-                {
-                    // Después de obtener el nuevo recorrido, recargar todo el historial
-                    await CargarHistorialRecorridos();
-                    await DisplayAlert("Éxito", "Recorrido registrado correctamente", "OK");
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error al obtener la distancia recorrida: {ex.Message}");
-
-                string mensajeError = "No se pudo obtener la distancia recorrida";
-                if (ex is HttpRequestException)
-                {
-                    mensajeError += ". Por favor, verifica tu conexión a internet.";
-                }
-                else if (ex is JsonException)
-                {
-                    mensajeError += ". Error al procesar los datos del servidor.";
-                }
-
-                await DisplayAlert("Error", mensajeError, "OK");
-            }
-            finally
-            {
-                // Ocultar indicador de carga
-                IsBusy = false;
-            }
-        }
-
     }
 }

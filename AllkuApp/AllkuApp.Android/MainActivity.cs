@@ -15,7 +15,7 @@ using Xamarin.Essentials;
 
 namespace AllkuApp.Droid
 {
-    [Activity(Label = "AllkuApp", Icon = "@mipmap/icon", Theme = "@style/MainTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
+    [Activity(Label = "AllkuApp", Icon = "@mipmap/ic_launcher", Theme = "@style/MainTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
     public class MainActivity : FormsAppCompatActivity, IMainActivityService
     {
         const int RequestSmsPermissionId = 0;

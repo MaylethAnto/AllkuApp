@@ -62,7 +62,7 @@ namespace AllkuApp.Vista
 
             return recetasModelo;
         }
-        
+
 
         private async void OnBackButtonClicked(object sender, EventArgs e)
         {
@@ -89,37 +89,32 @@ namespace AllkuApp.Vista
 
         private async void OnRecetasClicked(object sender, EventArgs e)
         {
-            // Navegar a la página de recetas
-            Console.WriteLine($"Número de recetas: {_recetas.Count}");
-
-            if (_recetas.Count > 0)
-            {
-                var recetasCreateRequest = ConvertirRecetasARequest(_recetas);
-                await Navigation.PushAsync(new RecetaPage(recetasCreateRequest));
-            }
-            else
-            {
-                await DisplayAlert("Error", "No hay recetas registradas.", "OK");
-            }
+            // Navegar a la página que muestra las recetas
+            await Navigation.PushAsync(new RecetaPage());
         }
 
-        private List<CreateRecetaRequest> ConvertirRecetasARequest(List<ModeloReceta> recetas)
+        private async void OnHistorialClinicoClicked(object sender, EventArgs e)
         {
-            var recetasRequest = new List<CreateRecetaRequest>();
-            foreach (var receta in recetas)
+            try
             {
-                recetasRequest.Add(new CreateRecetaRequest
-                {
-                    nombre_receta = receta.nombre_receta,
-                    descripcion_receta = receta.descripcion_receta,
-                    foto_receta = receta.foto_receta,
-                    id_canino = receta.id_canino
-                });
-            }
+                // Obtener el ID del canino desde Preferences que fue guardado en CargarDatosCanino
+                int idCanino = Preferences.Get("CaninoId", 0);
 
-            return recetasRequest;
-        
+                if (idCanino == 0)
+                {
+                    await DisplayAlert("Error", "No se pudo obtener la información del canino", "OK");
+                    return;
+                }
+
+                // Navegar directamente a la página de crear historial
+                await Navigation.PushAsync(new CrearHistorialPage(idCanino));
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Ocurrió un error: {ex.Message}", "OK");
+            }
         }
+
 
         private void OnGPSClicked(object sender, EventArgs e)
         {

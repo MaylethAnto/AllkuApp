@@ -94,6 +94,22 @@
                     </Grid>
                 </Frame>
 
+                <!-- Historia Clínica -->
+                <Frame HasShadow="False" BorderColor="Transparent" Padding="0" Margin="0,10">
+                    <Grid Padding="10" BackgroundColor="White" HorizontalOptions="FillAndExpand">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50"/>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Image Source="medical_icon.png" WidthRequest="40" HeightRequest="40" Grid.Column="0"/>
+                        <Label Text="Historial Clínico" VerticalOptions="Center" HorizontalOptions="Start" Grid.Column="1"/>
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnHistorialClinicoClicked"/>
+                        </Grid.GestureRecognizers>
+                    </Grid>
+                </Frame>
+
+
                 <!-- Botón GPS -->
                 <Frame HasShadow="False" BorderColor="Transparent" Padding="0" Margin="0,10">
                     <Grid Padding="10" BackgroundColor="White" HorizontalOptions="FillAndExpand">

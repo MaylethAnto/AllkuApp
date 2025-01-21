@@ -3,6 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="AllkuApp.App">
     <Application.Resources>
-        
+        <ResourceDictionary>
+            <Color x:Key="BackgroundColor">#ff0000</Color>
+            <Style TargetType="ContentPage">
+                <Setter Property="BackgroundColor" Value="{StaticResource BackgroundColor}" />
+            </Style>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -18,6 +18,7 @@ namespace AllkuApp.Vista
         private readonly ApiService _apiService;
         private ObservableCollection<SolicitudPaseoResponseDto> _solicitudes;
 
+
         public PaseadoresPage()
         {
             InitializeComponent();
@@ -65,7 +66,10 @@ namespace AllkuApp.Vista
         }
         private void ActualizarEstadoBotones(SolicitudPaseoResponseDto solicitud)
         {
-            switch (solicitud.Estado?.ToLower())
+            // Normalizar el estado a minúsculas para comparación consistente
+            var estado = solicitud.Estado?.ToLower();
+
+            switch (estado)
             {
                 case "pendiente":
                     solicitud.MostrarBotonesRespuesta = true;
@@ -80,22 +84,18 @@ namespace AllkuApp.Vista
                     solicitud.PuedeFinalizar = false;
                     break;
                 case "en progreso":
+                case "en curso":
                     solicitud.MostrarBotonesRespuesta = false;
                     solicitud.MostrarBotonesPaseo = true;
                     solicitud.PuedeIniciar = false;
                     solicitud.PuedeFinalizar = true;
                     break;
                 case "finalizado":
+                case "Finalizado": // Agregar ambas variantes
                     solicitud.MostrarBotonesRespuesta = false;
                     solicitud.MostrarBotonesPaseo = false;
                     solicitud.PuedeIniciar = false;
                     solicitud.PuedeFinalizar = false;
-                    break;
-                case "en curso":
-                    solicitud.MostrarBotonesRespuesta = false;
-                    solicitud.MostrarBotonesPaseo = true;
-                    solicitud.PuedeIniciar = false;
-                    solicitud.PuedeFinalizar = true;
                     break;
                 default:
                     solicitud.MostrarBotonesRespuesta = false;
@@ -276,8 +276,9 @@ namespace AllkuApp.Vista
 
                 if (success)
                 {
-                    solicitud.Estado = "Finalizado";
-                    ActualizarEstadoBotones(solicitud); // Actualiza los botones y el estado de la solicitud
+                    solicitud.Estado = "Finalizado"; // Usar mayúscula consistentemente
+                    ActualizarEstadoBotones(solicitud);
+                    GuardarSolicitudes(); // Asegurarse de guardar el nuevo estado
                     await DisplayAlert("Éxito", $"Paseo {idPaseo} finalizado correctamente.", "OK");
                 }
                 else
@@ -322,8 +323,12 @@ namespace AllkuApp.Vista
 
                     if (canino != null)
                     {
-                        string whatsappLink = $"https://wa.me/+593{celularPaseador}";
-                            string mensajeNotificacion = $"Tu solicitud fue aceptada por {nombrePaseador}. Click para contactar: <b>{celularPaseador}</b>";
+                            // correctamente para WhatsApp
+                            string whatsappLink = $"https://wa.me/+593{celularPaseador}";
+
+                            // Mensaje de notificación con el enlace clickeable
+                            string mensajeNotificacion = $"Tu solicitud fue aceptada por {nombrePaseador}. " +
+                                                          $"Click para contactar: <a href='{whatsappLink}'><b>{celularPaseador}</b></a>";
 
 
                             await _apiService.EnviarNotificacionAsync(

@@ -22,13 +22,58 @@ namespace AllkuApp.Vista
         private readonly ApiService _apiService;
         private bool _isLoading;
 
+        private bool _isListaVacia;
+        public bool IsListaVacia
+        {
+            get => _isListaVacia;
+            set
+            {
+                _isListaVacia = value;
+                OnPropertyChanged(nameof(IsListaVacia));
+            }
+        }
+        private bool _isRefreshing;
+        public bool IsRefreshing
+        {
+            get => _isRefreshing;
+            set
+            {
+                _isRefreshing = value;
+                OnPropertyChanged(nameof(IsRefreshing));
+            }
+        }
+
+        public Command RefreshCommand { get; }
+
+
         public EjerciciosPage()
         {
             InitializeComponent();
             _apiService = new ApiService();
             Distancia = new ObservableCollection<DistanciaModel>();
+            RefreshCommand = new Command(async () => await RefreshData());
             BindingContext = this;
 
+        }
+
+        private async Task RefreshData()
+        {
+            if (_isLoading) return;
+
+            try
+            {
+                IsRefreshing = true;
+                Distancia.Clear();
+                await CargarPaseosFinalizados();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error al refrescar datos: {ex.Message}");
+            }
+            finally
+            {
+                IsRefreshing = false;
+            }
         }
 
         protected override async void OnAppearing()
@@ -43,11 +88,10 @@ namespace AllkuApp.Vista
 
         private async Task CargarPaseosFinalizados()
         {
-            if (_isLoading) return;
-            _isLoading = true;
-
             try
             {
+                Distancia.Clear();
+
                 var idCanino = Preferences.Get("CaninoId", -1);
                 if (idCanino == -1)
                 {
@@ -56,57 +100,41 @@ namespace AllkuApp.Vista
                 }
 
                 var paseosFinalizados = await _apiService.ObtenerPaseosFinalizadosAsync(idCanino);
-                Debug.WriteLine($"Número de paseos recibidos: {paseosFinalizados?.Count ?? 0}");
 
                 if (paseosFinalizados?.Any() == true)
                 {
-                    // Definir el TimeZoneInfo para Ecuador (UTC-5)
-                    var ecuadorZone = TimeZoneInfo.CreateCustomTimeZone(
-                        "Ecuador Time",
-                        new TimeSpan(-5, 0, 0),
-                        "Ecuador Time",
-                        "Ecuador Time");
-
-                    foreach (var paseo in paseosFinalizados)
-                    {
-                        // Convertir las fechas a hora de Ecuador
-                        var fechaInicioEcuador = TimeZoneInfo.ConvertTimeFromUtc(
-                            paseo.FechaInicio?.ToUniversalTime() ?? DateTime.UtcNow,
-                            ecuadorZone);
-
-                        var fechaFinEcuador = TimeZoneInfo.ConvertTimeFromUtc(
-                            paseo.FechaFin?.ToUniversalTime() ?? DateTime.UtcNow,
-                            ecuadorZone);
-
-                        var nuevoModelo = new DistanciaModel
+                    // No convertir si las fechas ya están en UTC
+                    var paseosOrdenados = paseosFinalizados
+                        .OrderByDescending(p => p.FechaFin)
+                        .Select(p => new DistanciaModel
                         {
-                            FechaInicio = fechaInicioEcuador,
-                            FechaFin = fechaFinEcuador,
-                            DistanciaTotal = paseo.DistanciaKm ?? 0
-                        };
-
-                        MainThread.BeginInvokeOnMainThread(() =>
-                        {
-                            Distancia.Add(nuevoModelo);
+                            FechaInicio = p.FechaInicio?.ToLocalTime() ?? DateTime.UtcNow.ToLocalTime(),
+                            FechaFin = p.FechaFin?.ToLocalTime() ?? DateTime.UtcNow.ToLocalTime(),
+                            DistanciaTotal = p.DistanciaKm ?? 0
                         });
+
+                    foreach (var paseo in paseosOrdenados)
+                    {
+                        Distancia.Add(paseo);
                     }
                 }
-                else
-                {
-                    await DisplayAlert("Información", "No hay paseos finalizados para mostrar.", "OK");
-                }
+
+                // Actualizar el estado de IsListaVacia
+                IsListaVacia = !Distancia.Any();
             }
             catch (Exception ex)
             {
                 await DisplayAlert("Error", $"Hubo un error al cargar los paseos: {ex.Message}", "OK");
                 Debug.WriteLine($"Error: {ex.Message}");
             }
+               
             finally
             {
                 _isLoading = false;
             }
         }
 
+      
 
         // Asegúrate de desuscribirte cuando la página se destruya
         protected override void OnDisappearing()
@@ -159,6 +187,19 @@ namespace AllkuApp.Vista
             }
         }
 
+        private async void OnEliminarPaseoClicked(object sender, EventArgs e)
+        {
+            var menuItem = sender as MenuItem;
+            if (menuItem?.CommandParameter is DistanciaModel paseo)
+            {
+                var confirm = await DisplayAlert("Confirmar", "¿Estás seguro de que deseas eliminar este paseo?", "Sí", "No");
+                if (confirm)
+                {
+                    Distancia.Remove(paseo);
+                    await DisplayAlert("Éxito", "Paseo eliminado.", "OK");
+                }
+            }
+        }
         private async void OnBackButtonClicked(object sender, EventArgs e)
         {
             await Navigation.PopAsync();

@@ -8,16 +8,14 @@ namespace AllkuApp
 {
     public partial class App : Application
     {
-       
         public App()
         {
             InitializeComponent();
+            // Inicializar directamente con SplashPage sin NavigationPage
+            MainPage = new SplashPage();
 
-            MainPage = new NavigationPage(new SplashPage());
             // Registra tus páginas
             Routing.RegisterRoute("forgotpassword", typeof(ForgotPasswordPage));
-
-          
 
             // Manejar excepciones globales
             AppDomain.CurrentDomain.UnhandledException += HandleUnhandledException;
@@ -27,41 +25,62 @@ namespace AllkuApp
         private void HandleUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             LogoutUser();
+            Console.WriteLine($"Error no manejado en AppDomain: {e.ExceptionObject}");
         }
 
         private void HandleUnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
         {
-            e.SetObserved(); // Marcar la excepción como manejada
+            e.SetObserved();
             LogoutUser();
+            Console.WriteLine($"Error no manejado en Task: {e.Exception}");
         }
 
-        private void LogoutUser()
+        private async void LogoutUser()
         {
+            try
+            {
+                Application.Current.Properties["IsLoggedIn"] = false;
+                Application.Current.Properties["UserToken"] = null;
+                await Application.Current.SavePropertiesAsync();
 
-            MainPage = new NavigationPage(new SplashPage());
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    MainPage = new SplashPage(); // Sin NavigationPage
+                });
 
-            // Limpia los datos de sesión
-            Application.Current.Properties["IsLoggedIn"] = false;
-            Application.Current.Properties["UserToken"] = null;
-            Application.Current.SavePropertiesAsync();
-
-            // Opcional: Log para diagnosticar errores
-            Console.WriteLine("Sesión cerrada debido a un error no controlado.");
-
+                Console.WriteLine("Sesión cerrada debido a un error no controlado.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error durante el cierre de sesión: {ex}");
+            }
         }
+
         protected override void OnStart()
         {
-            // Manejar cuando la aplicación pasa al fondo
-            LogoutUser();
+            if (Application.Current.Properties.ContainsKey("AppClosedProperly"))
+            {
+                bool closedProperly = (bool)Application.Current.Properties["AppClosedProperly"];
+                if (!closedProperly)
+                {
+                    LogoutUser();
+                }
+            }
+
+            Application.Current.Properties["AppClosedProperly"] = false;
+            Application.Current.SavePropertiesAsync();
         }
 
         protected override void OnSleep()
         {
-
+            Application.Current.Properties["AppClosedProperly"] = true;
+            Application.Current.SavePropertiesAsync();
         }
 
         protected override void OnResume()
         {
+            Application.Current.Properties["AppClosedProperly"] = false;
+            Application.Current.SavePropertiesAsync();
         }
     }
 }

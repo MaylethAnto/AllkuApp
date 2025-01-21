@@ -16,6 +16,7 @@ namespace AllkuApp.Vista
             InitializeComponent();
             _loginService = new LoginService();  // Para el inicio de sesión
             _authService = new AuthService();    // Para el registro de usuarios
+            BindingContext = new LoginPageViewModel();
         }
 
         private async void OnLoginClicked(object sender, EventArgs e)

@@ -61,6 +61,7 @@ namespace AllkuApp.Vista
 
             // Cargar las recetas al inicializar la página
             CargarRecetas();
+            BindingContext = new LoginPageViewModel();
 
         }
 

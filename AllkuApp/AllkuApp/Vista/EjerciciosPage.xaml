@@ -37,11 +37,13 @@
                 VerticalOptions="Center"
                 HorizontalOptions="Center"/>
         </Grid>
-
-        <ScrollView Grid.Row="1">
-            <StackLayout Padding="20">
-                <!-- Botón Elegir Paseador -->
-                <Button Text="Elegir Paseador"
+        <RefreshView Grid.Row="1"
+                     Command="{Binding RefreshCommand}"
+                     IsRefreshing="{Binding IsRefreshing}">
+            <ScrollView >
+                <StackLayout Padding="20">
+                    <!-- Botón Elegir Paseador -->
+                    <Button Text="Elegir Paseador"
                         Clicked="OnElegirPaseadorClicked"
                         BackgroundColor="#0033CC"
                         TextColor="White"
@@ -51,33 +53,43 @@
                         HeightRequest="50"
                         Margin="0,0,0,20" />
 
-                <!-- ListView para mostrar el recorrido -->
-                <ListView x:Name="DistanciaListView"
+                    <!-- Mensaje cuando la lista esté vacía -->
+                    <Label 
+                        Text="Aún no hay ningún paseo registrado."
+                        IsVisible="{Binding IsListaVacia}"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center"
+                        FontSize="Medium" />
+
+
+                    <!-- ListView para mostrar el recorrido -->
+                    <ListView x:Name="DistanciaListView"
           ItemsSource="{Binding Distancia}"
           HasUnevenRows="True">
-                    <ListView.Header>
-                        <StackLayout Orientation="Horizontal" Padding="10">
-                            <Label Text="Fecha Inicio" HorizontalOptions="StartAndExpand"/>
-                            <Label Text="Fecha Fin" HorizontalOptions="CenterAndExpand"/>
-                            <Label Text="Distancia KM" HorizontalOptions="End"/>
-                        </StackLayout>
-                    </ListView.Header>
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <ViewCell>
-                                <StackLayout Orientation="Horizontal" Padding="10">
-                                    <Label Text="{Binding FechaInicio, StringFormat='{0:dd/MM/yyyy HH:mm:ss}'}" 
+                        <ListView.Header>
+                            <StackLayout Orientation="Horizontal" Padding="10">
+                                <Label Text="Fecha Inicio" HorizontalOptions="StartAndExpand"/>
+                                <Label Text="Fecha Fin" HorizontalOptions="CenterAndExpand"/>
+                                <Label Text="Distancia KM" HorizontalOptions="End"/>
+                            </StackLayout>
+                        </ListView.Header>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <ViewCell>
+                                    <StackLayout Orientation="Horizontal" Padding="10">
+                                        <Label Text="{Binding FechaInicio, StringFormat='{0:dd/MM/yyyy HH:mm:ss}'}" 
                                            HorizontalOptions="StartAndExpand"/>
-                                    <Label Text="{Binding FechaFin, StringFormat='{0:dd/MM/yyyy HH:mm:ss}'}" 
+                                        <Label Text="{Binding FechaFin, StringFormat='{0:dd/MM/yyyy HH:mm:ss}'}" 
                                            HorizontalOptions="CenterAndExpand"/>
-                                    <Label Text="{Binding DistanciaTotal, StringFormat='{0:F1} KM'}" 
+                                        <Label Text="{Binding DistanciaTotal, StringFormat='{0:F1} KM'}" 
                            HorizontalOptions="End"/>
-                                </StackLayout>
-                            </ViewCell>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </StackLayout>
-        </ScrollView>
+                                    </StackLayout>
+                                </ViewCell>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </StackLayout>
+            </ScrollView>
+        </RefreshView>
     </Grid>
 </ContentPage>

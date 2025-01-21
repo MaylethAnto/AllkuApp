@@ -33,7 +33,7 @@ namespace AllkuApp.Vista
                 var json = JsonConvert.SerializeObject(request);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                // Reemplaza con la URL de tu API
+                // Reemplaza con la URL de tu API que genera y envía el token al correo
                 var response = await client.PostAsync("https://allkuapi.sytes.net/api/Recuperacion/solicitar-recuperacion", content);
 
                 if (response.IsSuccessStatusCode)
@@ -41,19 +41,26 @@ namespace AllkuApp.Vista
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var result = JsonConvert.DeserializeObject<dynamic>(responseContent);
 
+                    // Aquí asumimos que la API te devuelve el token
+                    string token = result.token;
+
+                    // Enviar un mensaje de éxito al usuario
                     await DisplayAlert("Éxito",
-                        "Se ha enviado un enlace de recuperación a tu correo electrónico",
+                        $"Se ha enviado un enlace de recuperación a tu correo electrónico. Usa el token: {token}",
                         "OK");
 
-                    // Volver a la página de login
-                    await Navigation.PopAsync();
+                    // Navegar a la página donde el usuario ingresa el token
+                    await Navigation.PushAsync(new ResetPasswordPage(token));
+
                 }
                 else
                 {
+                    var responseContent = await response.Content.ReadAsStringAsync(); // Obtén el contenido de la respuesta
                     await DisplayAlert("Error",
-                        "No se pudo procesar la solicitud. Por favor, verifica tus datos",
+                        $"No se pudo procesar la solicitud. Detalles: {responseContent}",
                         "OK");
                 }
+
             }
             catch (Exception ex)
             {
@@ -63,8 +70,9 @@ namespace AllkuApp.Vista
             }
         }
 
-        private async void OnVolverClicked(object sender, EventArgs e)
+        private async void OnBackButtonClicked(object sender, EventArgs e)
         {
+            // Navegar de regreso a la página anterior
             await Navigation.PopAsync();
         }
     }

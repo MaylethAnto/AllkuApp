@@ -30,44 +30,48 @@
                         Clicked="OnMenuPaseador_Clicked"/>
         </Grid>
 
+        
         <!-- Contenido Principal -->
-        <ScrollView Grid.Row="1">
-            <StackLayout Padding="20">
-                <ListView x:Name="SolicitudesListView"
+        <RefreshView Grid.Row="1"
+              Command="{Binding RefreshCommand}"
+              IsRefreshing="{Binding IsRefreshing}">
+            <ScrollView>
+                <StackLayout Padding="20">
+                    <ListView x:Name="SolicitudesListView"
                          HasUnevenRows="True">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <ViewCell>
-                                <Frame Margin="5" Padding="10">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <ViewCell>
+                                    <Frame Margin="5" Padding="10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
 
-                                        <StackLayout Grid.Column="0">
-                                            <Label Text="{Binding NombreCanino}"
+                                            <StackLayout Grid.Column="0">
+                                                <Label Text="{Binding NombreCanino}"
                                                    FontSize="18"
                                                    FontAttributes="Bold"/>
-                                            <Label Text="{Binding NombreDueno}"
+                                                <Label Text="{Binding NombreDueno}"
                                                    FontSize="16"/>
-                                            <Label Text="{Binding CelularDueno}"
+                                                <Label Text="{Binding CelularDueno}"
                                                    FontSize="14"
                                                    TextColor="Gray"/>
-                                            <Label Text="{Binding FechaSolicitud, StringFormat='{0:dd/MM/yyyy HH:mm}'}"
+                                                <Label Text="{Binding FechaSolicitud, StringFormat='{0:dd/MM/yyyy HH:mm}'}"
                                                    FontSize="14"
                                                    TextColor="Gray"/>
-                                            <Label Text="{Binding Estado}"
+                                                <Label Text="{Binding Estado}"
                                                    FontSize="16"
                                                    FontAttributes="Bold"
                                                    TextColor="#007AFF"
                                                    HorizontalOptions="Center"
                                                    Margin="0,5,0,5"/>
 
-                                            <StackLayout Orientation="Horizontal" 
+                                                <StackLayout Orientation="Horizontal" 
                                                          HorizontalOptions="Center"
                                                          IsVisible="{Binding MostrarBotonesRespuesta}">
-                                                <Button Text="Aceptar"
+                                                    <Button Text="Aceptar"
                                                         BackgroundColor="#28A745"
                                                         TextColor="White"
                                                         CornerRadius="5"
@@ -75,7 +79,7 @@
                                                         Margin="5"
                                                         Clicked="OnAceptarClicked"
                                                         CommandParameter="{Binding .}"/>
-                                                <Button Text="Rechazar"
+                                                    <Button Text="Rechazar"
                                                         BackgroundColor="#DC3545"
                                                         TextColor="White"
                                                         CornerRadius="5"
@@ -83,12 +87,12 @@
                                                         Margin="5"
                                                         Clicked="OnRechazarClicked"
                                                         CommandParameter="{Binding .}"/>
-                                            </StackLayout>
+                                                </StackLayout>
 
-                                            <StackLayout Orientation="Horizontal" 
+                                                <StackLayout Orientation="Horizontal" 
                                                          HorizontalOptions="Center"
                                                          IsVisible="{Binding MostrarBotonesPaseo}">
-                                                <Button Text="Iniciar Paseo"
+                                                    <Button Text="Iniciar Paseo"
                                                         BackgroundColor="#17A2B8"
                                                         TextColor="White"
                                                         CornerRadius="5"
@@ -97,7 +101,7 @@
                                                         IsVisible="{Binding PuedeIniciar}"
                                                         Clicked="OnIniciarPaseoClicked"
                                                         CommandParameter="{Binding .}"/>
-                                                <Button Text="Finalizar Paseo"
+                                                    <Button Text="Finalizar Paseo"
                                                         BackgroundColor="#FFC107"
                                                         TextColor="White"
                                                         CornerRadius="5"
@@ -106,11 +110,11 @@
                                                         IsVisible="{Binding PuedeFinalizar}"
                                                         Clicked="OnFinalizarPaseoClicked"
                                                         CommandParameter="{Binding .}"/>
+                                                </StackLayout>
                                             </StackLayout>
-                                        </StackLayout>
 
-                                        <!-- Botón de eliminar -->
-                                        <Button Grid.Column="1"
+                                            <!-- Botón de eliminar -->
+                                            <Button Grid.Column="1"
                                                 Text="×"
                                                 FontSize="20"
                                                 WidthRequest="30"
@@ -123,13 +127,14 @@
                                                 Margin="0,0,0,0"
                                                 Clicked="OnEliminarClicked"
                                                 CommandParameter="{Binding .}"/>
-                                    </Grid>
-                                </Frame>
-                            </ViewCell>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </StackLayout>
-        </ScrollView>
+                                        </Grid>
+                                    </Frame>
+                                </ViewCell>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </StackLayout>
+            </ScrollView>
+        </RefreshView>
     </Grid>
 </ContentPage>

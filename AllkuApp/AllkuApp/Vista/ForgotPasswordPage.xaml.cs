@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
+using AllkuApp.Servicios;
 using Newtonsoft.Json;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 
 namespace AllkuApp.Vista
@@ -21,59 +24,82 @@ namespace AllkuApp.Vista
                 return;
             }
 
+            if (!IsValidEmail(EmailEntry.Text))
+            {
+                await DisplayAlert("Error", "Ingresa un correo válido", "OK");
+                return;
+            }
+
             try
             {
-                var client = new HttpClient();
-                var request = new
+                var token = Guid.NewGuid().ToString();
+                var emailService = new EmailService();
+
+                if (await emailService.EnviarCorreoAsync(EmailEntry.Text, token))
                 {
-                    NombreUsuario = UsernameEntry.Text,
-                    Correo = EmailEntry.Text
-                };
-
-                var json = JsonConvert.SerializeObject(request);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                // Reemplaza con la URL de tu API que genera y envía el token al correo
-                var response = await client.PostAsync("https://allkuapi.sytes.net/api/Recuperacion/solicitar-recuperacion", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var result = JsonConvert.DeserializeObject<dynamic>(responseContent);
-
-                    // Aquí asumimos que la API te devuelve el token
-                    string token = result.token;
-
-                    // Enviar un mensaje de éxito al usuario
-                    await DisplayAlert("Éxito",
-                        $"Se ha enviado un enlace de recuperación a tu correo electrónico. Usa el token: {token}",
-                        "OK");
-
-                    // Navegar a la página donde el usuario ingresa el token
-                    await Navigation.PushAsync(new ResetPasswordPage(token));
-
+                    await DisplayAlert("Éxito", "Correo enviado", "OK");
                 }
                 else
                 {
-                    var responseContent = await response.Content.ReadAsStringAsync(); // Obtén el contenido de la respuesta
-                    await DisplayAlert("Error",
-                        $"No se pudo procesar la solicitud. Detalles: {responseContent}",
-                        "OK");
+                    await DisplayAlert("Error", "Correo no registrado", "OK");
                 }
-
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error",
-                    "Ocurrió un error al procesar tu solicitud. Intenta más tarde",
-                    "OK");
+                await DisplayAlert("Error", $"Problema: {ex.Message}", "OK");
             }
         }
 
         private async void OnBackButtonClicked(object sender, EventArgs e)
         {
-            // Navegar de regreso a la página anterior
             await Navigation.PopAsync();
+        }
+
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private async Task<bool> IsValidUserAndEmail(string username, string email)
+        {
+            try
+            {
+                var client = new HttpClient();
+                var request = new
+                {
+                    NombreUsuario = username,
+                    Correo = email
+                };
+                var json = JsonConvert.SerializeObject(request);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var verificacionResponse = await client.PostAsync("https://allkuapi.sytes.net/api/Usuarios/verificar-correo", content);
+
+                if (verificacionResponse.IsSuccessStatusCode)
+                {
+                    // Si la respuesta es exitosa, el correo coincide con el usuario
+                    return true;
+                }
+                else
+                {
+                    // Si la respuesta no es exitosa, significa que el correo no corresponde al usuario
+                    await DisplayAlert("Error", "El correo no coincide con el usuario", "OK");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Ocurrió un error al verificar el correo: {ex.Message}", "OK");
+                return false;
+            }
         }
     }
 }

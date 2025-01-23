@@ -509,6 +509,7 @@ namespace AllkuApp.Servicios
         }
 
 
+
     }
 
     public class CaninoRequest

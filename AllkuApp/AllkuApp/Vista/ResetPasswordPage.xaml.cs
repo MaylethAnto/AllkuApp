@@ -8,19 +8,18 @@ namespace AllkuApp.Vista
 {
     public partial class ResetPasswordPage : ContentPage
     {
-        private string _token;
-
-        public ResetPasswordPage(string token)
+        public ResetPasswordPage()
         {
             InitializeComponent();
-            _token = token;
         }
 
         private async void OnResetPasswordClicked(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(NewPasswordEntry.Text) || string.IsNullOrEmpty(ConfirmPasswordEntry.Text))
+            if (string.IsNullOrEmpty(TokenEntry.Text) ||
+                string.IsNullOrEmpty(NewPasswordEntry.Text) ||
+                string.IsNullOrEmpty(ConfirmPasswordEntry.Text))
             {
-                await DisplayAlert("Error", "Por favor ingresa todas las contraseñas", "OK");
+                await DisplayAlert("Error", "Por favor completa todos los campos", "OK");
                 return;
             }
 
@@ -30,44 +29,51 @@ namespace AllkuApp.Vista
                 return;
             }
 
+            // Validar que el token ingresado sea correcto
+            if (!IsValidToken(TokenEntry.Text))
+            {
+                await DisplayAlert("Error", "El token de recuperación es incorrecto", "OK");
+                return;
+            }
+
             try
             {
                 var client = new HttpClient();
                 var request = new
                 {
-                    Token = _token,
+                    Token = TokenEntry.Text,
                     NuevaContrasena = NewPasswordEntry.Text
                 };
-
                 var json = JsonConvert.SerializeObject(request);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                // Reemplaza con la URL de tu API para restablecer la contraseña
-                var response = await client.PostAsync("https://allkuapi.sytes.net/api/Recuperacion/restablecer-contrasena", content);
-
+                var response = await client.PostAsync("https://allkuapi.sytes.net/api/Recuperacion/reset-password", content);
                 if (response.IsSuccessStatusCode)
                 {
-                    await DisplayAlert("Éxito", "Tu contraseña ha sido restablecida", "OK");
-
-                    // Volver a la página de login
+                    await DisplayAlert("Éxito", "Contraseña restablecida correctamente", "OK");
                     await Navigation.PopToRootAsync();
                 }
                 else
                 {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    await DisplayAlert("Error", $"No se pudo restablecer la contraseña. Detalles: {responseContent}", "OK");
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    await DisplayAlert("Error", $"No se pudo restablecer: {errorContent}", "OK");
                 }
-
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error", "Ocurrió un error al restablecer tu contraseña. Intenta más tarde", "OK");
+                await DisplayAlert("Error", $"Problema al restablecer: {ex.Message}", "OK");
             }
         }
+
         private async void OnBackButtonClicked(object sender, EventArgs e)
         {
-            // Navegar de regreso a la página anterior
             await Navigation.PushAsync(new LoginPage());
+        }
+
+        private bool IsValidToken(string token)
+        {
+            // Implementa la lógica de validación del token
+            // Por ejemplo, hacer una llamada al backend para verificar si el token es válido
+            return token == "valid-token";
         }
     }
 }

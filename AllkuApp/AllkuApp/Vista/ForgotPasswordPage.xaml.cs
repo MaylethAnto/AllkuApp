@@ -52,7 +52,7 @@ namespace AllkuApp.Vista
 
         private async void OnBackButtonClicked(object sender, EventArgs e)
         {
-            await Navigation.PopAsync();
+            await Navigation.PushAsync(new LoginPage());
         }
 
         private bool IsValidEmail(string email)

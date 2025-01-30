@@ -68,47 +68,83 @@
                 <StackLayout Padding="0">
                     <!-- Stack para Dueños -->
                     <StackLayout x:Name="StackDuenos" IsVisible="True">
-                        <Label Text="Dueños Registrados" FontAttributes="Bold" HorizontalOptions="Center" Margin="0,0,0,10"/>
+                        <Label Text="Dueños Registrados" FontAttributes="Bold" HorizontalOptions="Center" Margin="0,0,0,10" />
                         <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent">
-                            <ListView x:Name="ListaDuenos" HasUnevenRows="True">
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <ViewCell>
-                                            <Grid Padding="10">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="*" />
-                                                </Grid.ColumnDefinitions>
-                                                <Label Grid.Column="0" Text="{Binding CedulaDueno}" TextColor="#333333"/>
-                                                <Label Grid.Column="1" Text="{Binding NombreDueno}" TextColor="#333333"/>
-                                            </Grid>
-                                        </ViewCell>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
+                            <Grid Padding="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <Grid Grid.Row="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Label Grid.Column="0" Text="Cédula" TextColor="#333333" FontAttributes="Bold" />
+                                    <Label Grid.Column="1" Text="Nombre" TextColor="#333333" FontAttributes="Bold" />
+                                </Grid>
+
+                                <ListView x:Name="ListaDuenos" Grid.Row="1" HasUnevenRows="True">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <ViewCell>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <Label Grid.Column="0" Text="{Binding CedulaDueno}" TextColor="#333333" />
+                                                    <Label Grid.Column="1" Text="{Binding NombreDueno}" TextColor="#333333" />
+                                                </Grid>
+                                            </ViewCell>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </Grid>
                         </Frame>
                     </StackLayout>
 
                     <!-- Stack para Caninos -->
                     <StackLayout x:Name="StackCaninos" IsVisible="False">
-                        <Label Text="Caninos Registrados" FontAttributes="Bold" HorizontalOptions="Center" Margin="0,0,0,10"/>
+                        <Label Text="Caninos Registrados" FontAttributes="Bold" HorizontalOptions="Center" Margin="0,0,0,10" />
                         <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent">
-                            <ListView x:Name="ListaCaninos" HasUnevenRows="True">
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <ViewCell>
-                                            <Grid Padding="10">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="*" />
-                                                </Grid.ColumnDefinitions>
-                                                <Label Grid.Column="0" Text="{Binding NombreCanino}" TextColor="#333333" />
-                                                <Label Grid.Column="1" Text="{Binding RazaCanino}" TextColor="#333333" />
-                                            </Grid>
-                                        </ViewCell>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
+                            <Grid Padding="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <Grid Grid.Row="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Label Grid.Column="0" Text="Nombre" TextColor="#333333" FontAttributes="Bold" />
+                                    <Label Grid.Column="1" Text="Raza" TextColor="#333333" FontAttributes="Bold" />
+                                </Grid>
+
+                                <ListView x:Name="ListaCaninos" Grid.Row="1" HasUnevenRows="True">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <ViewCell>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <Label Grid.Column="0" Text="{Binding NombreCanino}" TextColor="#333333" />
+                                                    <Label Grid.Column="1" Text="{Binding RazaCanino}" TextColor="#333333" />
+                                                </Grid>
+                                            </ViewCell>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </Grid>
                         </Frame>
                     </StackLayout>
 
@@ -116,24 +152,47 @@
                     <StackLayout x:Name="StackPaseadores" IsVisible="False">
                         <Label Text="Paseadores Registrados" FontAttributes="Bold" HorizontalOptions="Center" Margin="0,0,0,10"/>
                         <Frame BackgroundColor="#F2F2F2" CornerRadius="10" Padding="10" BorderColor="Transparent">
-                            <ListView x:Name="ListaPaseadores" HasUnevenRows="True">
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <ViewCell>
-                                            <Grid Padding="10">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="*" />
-                                                </Grid.ColumnDefinitions>
-                                                <Label Grid.Column="0" Text="{Binding CedulaPaseador}" TextColor="#333333" />
-                                                <Label Grid.Column="1" Text="{Binding NombrePaseador}" TextColor="#333333" />
-                                            </Grid>
-                                        </ViewCell>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
+                            <Grid Padding="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <Grid Grid.Row="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Label Grid.Column="0" Text="Cédula" TextColor="#333333" FontAttributes="Bold" />
+                                    <Label Grid.Column="1" Text="Nombre" TextColor="#333333" FontAttributes="Bold" />
+                                    <Label Grid.Column="2" Text="Estado" TextColor="#333333" FontAttributes="Bold" />
+                                </Grid>
+
+                                <ListView x:Name="ListaPaseadores" Grid.Row="1" HasUnevenRows="True">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <ViewCell>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <Label Grid.Column="0" Text="{Binding CedulaPaseador}" TextColor="#333333" />
+                                                    <Label Grid.Column="1" Text="{Binding NombrePaseador}" TextColor="#333333" />
+                                                    <Switch Grid.Column="2" IsToggled="{Binding EstaDisponible}" Toggled="OnPaseadorSwitchToggled" />
+                                                </Grid>
+                                            </ViewCell>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </Grid>
                         </Frame>
-                    </StackLayout>
+                           
+        </StackLayout>
                 </StackLayout>
             </ScrollView>
         </Grid>

@@ -66,5 +66,30 @@ namespace AllkuApp.Servicios
             }
         }
 
+        public async Task<bool> TogglePaseadorEstado(string cedula)
+        {
+            try
+            {
+                string url = $"{_baseUrl}/paseadores/{cedula}/estado";
+                var response = await _client.PutAsync(url, null);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    return true;
+                }
+                else
+                {
+                    await _page.DisplayAlert("Error", $"No se pudo cambiar el estado: {response.StatusCode}", "Aceptar");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                await _page.DisplayAlert("Error", $"Error: {ex.Message}", "Aceptar");
+                return false;
+            }
+        }
+
     }
 }

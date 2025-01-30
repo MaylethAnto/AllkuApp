@@ -12,6 +12,7 @@ using Xamarin.Forms.Platform.Android;
 using AllkuApp;
 using System;
 using Xamarin.Essentials;
+using AndroidX.AppCompat.App;
 
 namespace AllkuApp.Droid
 {
@@ -23,7 +24,9 @@ namespace AllkuApp.Droid
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
+            AppCompatDelegate.DefaultNightMode = AppCompatDelegate.ModeNightFollowSystem;
             base.OnCreate(savedInstanceState);
+    
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
             Forms.Init(this, savedInstanceState);
             Xamarin.FormsGoogleMaps.Init(this, savedInstanceState);

@@ -4,9 +4,77 @@
              x:Class="AllkuApp.App">
     <Application.Resources>
         <ResourceDictionary>
-            <Color x:Key="BackgroundColor">#ff0000</Color>
+
+            <Color x:Key="LightBackgroundColor">White</Color>
+            <Color x:Key="DarkBackgroundColor">#121212</Color>
+            <Color x:Key="LightTextColor">Black</Color>
+            <Color x:Key="DarkTextColor">White</Color>
+            <Color x:Key="LightSecondaryTextColor">#666666</Color>
+            <Color x:Key="DarkSecondaryTextColor">#BBBBBB</Color>
+            <Color x:Key="LightEntryBackgroundColor">#F2F2F2</Color>
+            <Color x:Key="DarkEntryBackgroundColor">#404040</Color>
+
+            <!-- Estilos globales -->
             <Style TargetType="ContentPage">
-                <Setter Property="BackgroundColor" Value="{StaticResource BackgroundColor}" />
+                <Setter Property="BackgroundColor">
+                    <Setter.Value>
+                        <AppThemeBinding Light="{StaticResource LightBackgroundColor}"
+                                         Dark="{StaticResource DarkBackgroundColor}" />
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style TargetType="Label">
+                <Setter Property="TextColor">
+                    <Setter.Value>
+                        <AppThemeBinding Light="{StaticResource LightTextColor}"
+                                         Dark="{StaticResource DarkTextColor}" />
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style TargetType="Entry">
+                <Setter Property="TextColor">
+                    <Setter.Value>
+                        <AppThemeBinding Light="{StaticResource LightTextColor}"
+                                         Dark="{StaticResource DarkTextColor}" />
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="PlaceholderColor">
+                    <Setter.Value>
+                        <AppThemeBinding Light="#999999" Dark="#808080" />
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="BackgroundColor">
+                    <Setter.Value>
+                        <AppThemeBinding Light="{StaticResource LightEntryBackgroundColor}"
+                                         Dark="{StaticResource DarkEntryBackgroundColor}" />
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style TargetType="Frame">
+                <Setter Property="BackgroundColor">
+                    <Setter.Value>
+                        <AppThemeBinding Light="{StaticResource LightEntryBackgroundColor}"
+                                         Dark="{StaticResource DarkEntryBackgroundColor}" />
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style TargetType="Picker">
+                <Setter Property="TextColor">
+                    <Setter.Value>
+                        <AppThemeBinding Light="{StaticResource LightTextColor}"
+                                         Dark="{StaticResource DarkTextColor}" />
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="BackgroundColor">
+                    <Setter.Value>
+                        <AppThemeBinding Light="{StaticResource LightEntryBackgroundColor}"
+                                         Dark="{StaticResource DarkEntryBackgroundColor}" />
+                    </Setter.Value>
+                </Setter>
             </Style>
         </ResourceDictionary>
     </Application.Resources>

@@ -111,8 +111,8 @@
                 <!-- Grid de Opciones -->
                 <Grid RowSpacing="20" ColumnSpacing="20" Margin="0,20,0,0">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="100"/>
-                        <RowDefinition Height="100"/>
+                        <RowDefinition Height="110"/>
+                        <RowDefinition Height="110"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -121,17 +121,18 @@
 
                     <!-- Historia Clínica -->
                     <Frame Grid.Row="0" Grid.Column="0" 
-                           BackgroundColor="White" 
-                           HasShadow="True"
-                           CornerRadius="15">
-                        <StackLayout>
+           BackgroundColor="White" 
+           HasShadow="True"
+           Padding="10"
+           CornerRadius="15">
+                        <StackLayout Spacing="5">
                             <Image Source="medical_icon.png" 
-                                   HeightRequest="60"
-                                   WidthRequest="60"
-                                   VerticalOptions="Center"/>
+                   HeightRequest="70"
+                   Aspect="AspectFit"
+                   VerticalOptions="Center"/>
                             <Label Text="HISTORIA CLÍNICA" 
-                                   HorizontalOptions="Center"
-                                   FontSize="12"/>
+                   HorizontalOptions="Center"
+                   FontSize="12"/>
                         </StackLayout>
                         <Frame.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnHistorialClinicoClicked"/>
@@ -140,62 +141,73 @@
 
                     <!-- Ejercicio -->
                     <Frame Grid.Row="0" Grid.Column="1" 
-                           BackgroundColor="White" 
-                           HasShadow="True"
-                           CornerRadius="15">
-                        <StackLayout>
+           BackgroundColor="White" 
+           HasShadow="True"
+           Padding="10"
+           CornerRadius="15">
+                        <StackLayout Spacing="5">
                             <Image Source="ejercicio_icon.png" 
-                                   HeightRequest="60"
-                                   WidthRequest="60"
-                                   VerticalOptions="Center"/>
+                   HeightRequest="70"
+                   Aspect="AspectFit"
+                   VerticalOptions="Center"/>
                             <Label Text="EJERCICIO" 
-                                   HorizontalOptions="Center"
-                                   FontSize="12"/>
+                   HorizontalOptions="Center"
+                   FontSize="12"/>
                         </StackLayout>
                         <Frame.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnEjerciciosClicked"/>
                         </Frame.GestureRecognizers>
                     </Frame>
-
                     <!-- Dieta ALLKU -->
                     <Frame Grid.Row="1" Grid.Column="0" 
-                           BackgroundColor="White" 
-                           HasShadow="True"
-                           CornerRadius="15">
-                        <StackLayout>
-                            <Image Source="dieta_icon.png" 
-                                   HeightRequest="60"
-                                   WidthRequest="60"
-                                   VerticalOptions="Center"/>
-                            <Label Text="DIETA ALLKU" 
-                                   HorizontalOptions="Center"
-                                   FontSize="12"/>
+       BackgroundColor="White" 
+       HasShadow="True"
+       Padding="10"
+       CornerRadius="15">
+                        <StackLayout Spacing="5">
+                            <Image Source="dieta_icon.png"
+               HeightRequest="80" 
+               Aspect="AspectFit" 
+               VerticalOptions="Center"/>
+                                <Label Text="DIETA ALLKU"
+               HorizontalOptions="Center"
+               FontSize="12"/>
                         </StackLayout>
                         <Frame.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnRecetasClicked"/> 
+                            <TapGestureRecognizer Tapped="OnRecetasClicked"/>
                         </Frame.GestureRecognizers>
                     </Frame>
 
                     <!-- GPS ALLKU -->
                     <Frame Grid.Row="1" Grid.Column="1" 
-                           BackgroundColor="White" 
-                           HasShadow="True"
-                           CornerRadius="15">
-                        <StackLayout>
+       BackgroundColor="White" 
+       HasShadow="True"
+       Padding="12"
+       CornerRadius="15"
+       HeightRequest="90"
+       VerticalOptions="Center">
+                        <StackLayout Spacing="2" 
+                 HorizontalOptions="Center"
+                 VerticalOptions="Center">
                             <Image Source="gps_icon.png" 
-                                   HeightRequest="60"
-                                   WidthRequest="60"
-                                   VerticalOptions="Center"/>
+                           HeightRequest="60"  
+                           WidthRequest="60"
+                           Aspect="AspectFill"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"/>
+
                             <Label Text="GPS ALLKU" 
-                                   HorizontalOptions="Center"
-                                   FontSize="12"/>
+               HorizontalOptions="Center"
+               FontSize="12"
+               Margin="0,4,0,0"/>
                         </StackLayout>
                         <Frame.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnGPSClicked"/>
                         </Frame.GestureRecognizers>
-                  
-        
-                        <!-- Efecto visual al tocar -->
+           
+
+
+                    <!-- Efecto visual al tocar -->
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup Name="CommonStates">
                                 <VisualState Name="Normal"/>

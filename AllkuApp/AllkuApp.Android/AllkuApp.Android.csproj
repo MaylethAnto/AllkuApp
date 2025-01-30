@@ -103,9 +103,7 @@
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\allkaapp_logo_white.png" />
     <AndroidResource Include="Resources\drawable\bell_icon.png" />
-    <AndroidResource Include="Resources\drawable\dieta_icon.png" />
     <AndroidResource Include="Resources\drawable\ejercicio_icon.png" />
-    <AndroidResource Include="Resources\drawable\gps_icon.png" />
     <AndroidResource Include="Resources\drawable\perfil_icon.png" />
     <AndroidResource Include="Resources\drawable\sos_icon.png" />
   </ItemGroup>
@@ -155,6 +153,10 @@
     <AndroidResource Include="Resources\drawable\splash_screen.xml">
       <SubType>Designer</SubType>
     </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\dieta_icon.png" />
+    <AndroidResource Include="Resources\drawable\gps_icon.png" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
 </Project>

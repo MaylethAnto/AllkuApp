@@ -3,84 +3,154 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Xamarin.Forms;
+using System.Diagnostics;
+using System.Threading;
 
 namespace AllkuApp
 {
     public partial class App : Application
     {
+        private bool isHandlingException = false;
+        private static readonly SemaphoreSlim _logoutSemaphore = new SemaphoreSlim(1, 1);
+
         public App()
         {
             InitializeComponent();
-            // Inicializar directamente con SplashPage sin NavigationPage
             MainPage = new SplashPage();
-
-            // Registra tus páginas
             Routing.RegisterRoute("forgotpassword", typeof(ForgotPasswordPage));
 
-            // Manejar excepciones globales
+            // Mejorar el manejo de excepciones
             AppDomain.CurrentDomain.UnhandledException += HandleUnhandledException;
             TaskScheduler.UnobservedTaskException += HandleUnobservedTaskException;
         }
 
         private void HandleUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            LogoutUser();
-            Console.WriteLine($"Error no manejado en AppDomain: {e.ExceptionObject}");
+            var exception = e.ExceptionObject as Exception;
+            HandleException(exception);
+            Debug.WriteLine($"Error no manejado en AppDomain: {exception}");
         }
 
         private void HandleUnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
         {
             e.SetObserved();
-            LogoutUser();
-            Console.WriteLine($"Error no manejado en Task: {e.Exception}");
+            HandleException(e.Exception);
+            Debug.WriteLine($"Error no manejado en Task: {e.Exception}");
         }
 
-        private async void LogoutUser()
+        private void HandleException(Exception ex)
+        {
+            if (isHandlingException) return;
+
+            try
+            {
+                isHandlingException = true;
+
+                // Forzar cierre de sesión en cualquier excepción no manejada
+                Device.BeginInvokeOnMainThread(async () =>
+                {
+                    await ForceLogoutUser();
+                });
+            }
+            finally
+            {
+                isHandlingException = false;
+            }
+        }
+
+        private async Task ForceLogoutUser()
         {
             try
             {
-                Application.Current.Properties["IsLoggedIn"] = false;
-                Application.Current.Properties["UserToken"] = null;
+                // Usar semáforo para evitar múltiples cierres de sesión simultáneos
+                await _logoutSemaphore.WaitAsync();
+
+                // Limpiar todas las propiedades de sesión
+                if (Application.Current.Properties.ContainsKey("IsLoggedIn"))
+                {
+                    Application.Current.Properties["IsLoggedIn"] = false;
+                }
+                if (Application.Current.Properties.ContainsKey("UserToken"))
+                {
+                    Application.Current.Properties["UserToken"] = null;
+                }
+
+                // Agregar una marca de tiempo del último cierre de sesión
+                Application.Current.Properties["LastLogout"] = DateTime.UtcNow.ToString();
+
+                // Forzar el guardado de propiedades
                 await Application.Current.SavePropertiesAsync();
 
+                // Limpiar el stack de navegación y volver a SplashPage
                 Device.BeginInvokeOnMainThread(() =>
                 {
-                    MainPage = new SplashPage(); // Sin NavigationPage
+                    MainPage = new SplashPage();
                 });
 
-                Console.WriteLine("Sesión cerrada debido a un error no controlado.");
+                Debug.WriteLine("Sesión forzada a cerrar debido a un error.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error durante el cierre de sesión: {ex}");
+                Debug.WriteLine($"Error crítico durante el cierre de sesión forzado: {ex}");
+                // En caso de error extremo, intentar limpiar todo
+                Application.Current.Properties.Clear();
+                await Application.Current.SavePropertiesAsync();
             }
-        }
-
-        protected override void OnStart()
-        {
-            if (Application.Current.Properties.ContainsKey("AppClosedProperly"))
+            finally
             {
-                bool closedProperly = (bool)Application.Current.Properties["AppClosedProperly"];
-                if (!closedProperly)
-                {
-                    LogoutUser();
-                }
+                _logoutSemaphore.Release();
             }
-
-            Application.Current.Properties["AppClosedProperly"] = false;
-            Application.Current.SavePropertiesAsync();
         }
 
-        protected override void OnSleep()
+        protected override async void OnStart()
         {
-            Application.Current.Properties["AppClosedProperly"] = true;
-            Application.Current.SavePropertiesAsync();
+            try
+            {
+                // Verificar si la app se cerró correctamente
+                if (Application.Current.Properties.ContainsKey("AppClosedProperly"))
+                {
+                    bool closedProperly = (bool)Application.Current.Properties["AppClosedProperly"];
+                    if (!closedProperly)
+                    {
+                        await ForceLogoutUser();
+                    }
+                }
+
+                Application.Current.Properties["AppClosedProperly"] = false;
+                await Application.Current.SavePropertiesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error en OnStart: {ex}");
+                await ForceLogoutUser();
+            }
         }
 
-        protected override void OnResume()
+        protected override async void OnSleep()
         {
-            Application.Current.Properties["AppClosedProperly"] = false;
-            Application.Current.SavePropertiesAsync();
+            try
+            {
+                Application.Current.Properties["AppClosedProperly"] = true;
+                await Application.Current.SavePropertiesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error en OnSleep: {ex}");
+            }
+        }
+
+        protected override async void OnResume()
+        {
+            try
+            {
+                Application.Current.Properties["AppClosedProperly"] = false;
+                await Application.Current.SavePropertiesAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error en OnResume: {ex}");
+                await ForceLogoutUser();
+            }
         }
     }
 }

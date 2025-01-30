@@ -12,7 +12,7 @@ namespace AllkuApp.Vista
     public partial class GPSPage : ContentPage
     {
         private Timer timer;
-        public static GPSPage Instance { get; private set; } 
+        public static GPSPage Instance { get; private set; }
 
         public GPSPage()
         {

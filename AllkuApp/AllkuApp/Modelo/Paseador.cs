@@ -12,7 +12,10 @@ namespace AllkuApp.Modelo
         public string DireccionPaseador { get; set; }
         public string CelularPaseador { get; set; }
         public string CorreoPaseador { get; set; }
+
+        public bool EstaDisponible { get; set; }
         public int? IdCanino { get; set; }
+
       
     }
 }

@@ -54,6 +54,23 @@ namespace AllkuApp.Vista
             }
         }
 
+        private async void OnPaseadorSwitchToggled(object sender, ToggledEventArgs e)
+        {
+            var switchControl = (Switch)sender;
+            var paseador = switchControl.BindingContext as Paseador;
+
+            if (paseador != null)
+            {
+                bool resultado = await _adminService.TogglePaseadorEstado(paseador.CedulaPaseador.ToString());
+
+                if (!resultado)
+                {
+                    // Revert the switch if API call fails
+                    switchControl.IsToggled = !switchControl.IsToggled;
+                }
+            }
+        }
+
         // Evento para manejar la selección de tipo de usuario
         private void OnTipoUsuarioSeleccionado(object sender, EventArgs e)
         {

@@ -9,7 +9,7 @@ namespace AllkuApp.Servicios
     public class ValidationService
     {
         private readonly HttpClient _httpClient;
-        private const string BaseUrl = "https://allkuapi.sytes.net"; // Replace with your actual API base URL
+        private const string BaseUrl = "http://10.0.2.2:5138/"; // Replace with your actual API base URL
 
         public ValidationService()
         {

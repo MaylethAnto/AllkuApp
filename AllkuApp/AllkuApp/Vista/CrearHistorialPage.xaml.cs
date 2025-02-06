@@ -28,27 +28,6 @@ namespace AllkuApp.Vista
             {
                 TipoHistorial.SelectedIndex = 0;
             }
-
-            // Verificar el contador de aperturas
-            if (Application.Current.Properties.ContainsKey("OpenCount"))
-            {
-                int openCount = (int)Application.Current.Properties["OpenCount"];
-                if (openCount >= 2)
-                {
-                    // Si se ha abierto más de una vez, navegar a la página de listado
-                    Navigation.PushAsync(new ListaHistorialesPage(_idCanino));
-                }
-                else
-                {
-                    // Incrementar el contador de aperturas
-                    Application.Current.Properties["OpenCount"] = openCount + 1;
-                }
-            }
-            else
-            {
-                // Primera apertura, inicializar el contador
-                Application.Current.Properties["OpenCount"] = 1;
-            }
         }
 
         private async void OnBackButtonClicked(object sender, EventArgs e)
@@ -72,11 +51,13 @@ namespace AllkuApp.Vista
                     fecha_historial = FechaHistorial.Date,
                     tipo_historial = TipoHistorial.SelectedItem?.ToString(),
                     descripcion_historial = DescripcionHistorial.Text?.Trim(),
-                    notificacion_historial = NotificacionHistorial.IsToggled,
                     id_canino = _idCanino
                 };
 
-                bool resultado = await _historialService.CreateHistorialClinicoAsync(historialRequest);
+                // Obtener el valor del interruptor de notificación
+                bool enviarNotificacion = NotificacionHistorial.IsToggled;
+
+                bool resultado = await _historialService.CreateHistorialClinicoAsync(historialRequest, enviarNotificacion);
 
                 if (resultado)
                 {
@@ -121,12 +102,9 @@ namespace AllkuApp.Vista
             return true;
         }
 
-        private async void OnCancelarClicked(object sender, EventArgs e)
+        private async void OnListaClicked(object sender, EventArgs e)
         {
             await Navigation.PushAsync(new ListaHistorialesPage(_idCanino));
-
         }
-
     }
-
 }

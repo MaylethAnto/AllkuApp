@@ -18,7 +18,7 @@ namespace AllkuApp.Servicios
     public class ApiService
     {
         private readonly HttpClient _client;
-        private readonly string _baseUrl = "https://allkuapi.sytes.net/api/Canino";
+        private readonly string _baseUrl = "http://10.0.2.2:5138/api/Canino";
 
 
         public ApiService()
@@ -62,7 +62,7 @@ namespace AllkuApp.Servicios
         {
             try
             {
-                var response = await _client.GetAsync($"https://allkuapi.sytes.net/api/Canino/usuarios?cedulaDueno={cedula}");
+                var response = await _client.GetAsync($"http://10.0.2.2:5138/api/Canino/usuarios?cedulaDueno={cedula}");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -162,7 +162,7 @@ namespace AllkuApp.Servicios
 
             try
             {
-                var response = await _client.PostAsync("https://allkuapi.sytes.net/api/Notificacion/enviar", content);
+                var response = await _client.PostAsync("http://10.0.2.2:5138/api/Notificacion/enviar", content);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -189,7 +189,7 @@ namespace AllkuApp.Servicios
         public async Task<bool> CheckForNotificationsAsync()
         {
             var cedulaDueno = Preferences.Get("CedulaDueno", string.Empty);
-            var response = await _client.GetAsync($"https://allkuapi.sytes.net/api/Notificacion/check?cedulaDueno={cedulaDueno}");
+            var response = await _client.GetAsync($"http://10.0.2.2:5138/api/Notificacion/check?cedulaDueno={cedulaDueno}");
             if (response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync();
@@ -201,7 +201,7 @@ namespace AllkuApp.Servicios
         public async Task<NotificacionDto> GetLatestNotificationAsync()
         {
             var cedulaDueno = Preferences.Get("CedulaDueno", string.Empty);
-            var response = await _client.GetAsync($"https://allkuapi.sytes.net/api/Notificacion/ultima?cedulaDueno={cedulaDueno}");
+            var response = await _client.GetAsync($"http://10.0.2.2:5138/api/Notificacion/ultima?cedulaDueno={cedulaDueno}");
             if (response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync();
@@ -217,7 +217,7 @@ namespace AllkuApp.Servicios
                 idNotificacion = idNotificacion
             }), Encoding.UTF8, "application/json");
 
-            var response = await _client.PutAsync($"https://allkuapi.sytes.net/api/Notificacion/marcarComoLeida", content);
+            var response = await _client.PutAsync($"http://10.0.2.2:5138/api/Notificacion/marcarComoLeida", content);
             if (!response.IsSuccessStatusCode)
             {
                 Console.WriteLine($"Error al marcar la notificación como leída: {response.ReasonPhrase}");
@@ -231,7 +231,7 @@ namespace AllkuApp.Servicios
             {
                 using (var client = new HttpClient())
                 {
-                    var response = await client.GetAsync($"https://allkuapi.sytes.net/api/Gps/distancia?id_canino={idCanino}");
+                    var response = await client.GetAsync($"http://10.0.2.2:5138/api/Gps/distancia?id_canino={idCanino}");
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -255,7 +255,7 @@ namespace AllkuApp.Servicios
         public async Task<List<PaseoModel>> ObtenerPaseosFinalizadosAsync(int idCanino)
         {
             // Cambiamos la URL para usar el parámetro en la ruta en lugar de query parameter
-            var url = $"https://allkuapi.sytes.net/api/Gps/paseos-finalizados/{idCanino}";
+            var url = $"http://10.0.2.2:5138/api/Gps/paseos-finalizados/{idCanino}";
             try
             {
                 var response = await _client.GetStringAsync(url);
@@ -282,7 +282,7 @@ namespace AllkuApp.Servicios
         {
             try
             {
-                var response = await _client.GetAsync($"https://allkuapi.sytes.net/api/Paseador/disponibles");
+                var response = await _client.GetAsync($"http://10.0.2.2:5138/api/Paseador/disponibles");
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
@@ -304,7 +304,7 @@ namespace AllkuApp.Servicios
             {
                 var json = JsonSerializer.Serialize(solicitud);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _client.PostAsync($"https://allkuapi.sytes.net/api/Paseador/solicitud", content);
+                var response = await _client.PostAsync($"http://10.0.2.2:5138/api/Paseador/solicitud", content);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
@@ -318,7 +318,7 @@ namespace AllkuApp.Servicios
         {
             try
             {
-                var url = $"https://allkuapi.sytes.net/api/Paseador/{cedula}/solicitudes";
+                var url = $"http://10.0.2.2:5138/api/Paseador/{cedula}/solicitudes";
                 var response = await _client.GetAsync(url);
 
                 if (response.IsSuccessStatusCode)
@@ -355,7 +355,7 @@ namespace AllkuApp.Servicios
                 };
                 var json = JsonSerializer.Serialize(respuesta);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _client.PutAsync($"https://allkuapi.sytes.net/api/Paseador/solicitud/{idSolicitud}/responder", content);
+                var response = await _client.PutAsync($"http://10.0.2.2:5138/api/Paseador/solicitud/{idSolicitud}/responder", content);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
@@ -369,7 +369,7 @@ namespace AllkuApp.Servicios
         {
             try
             {
-                var url = $"https://allkuapi.sytes.net/api/Paseador/ObtenerIdPaseoPorIdSolicitud/{idSolicitud}";
+                var url = $"http://10.0.2.2:5138/api/Paseador/ObtenerIdPaseoPorIdSolicitud/{idSolicitud}";
                 var response = await _client.GetAsync(url);
 
                 if (response.IsSuccessStatusCode)
@@ -398,7 +398,7 @@ namespace AllkuApp.Servicios
                     throw new ArgumentException("ID de paseo debe ser un número entero positivo y cédula del paseador no puede estar vacía.");
                 }
 
-                var url = $"https://allkuapi.sytes.net/api/paseador/paseo/{idPaseo}/finalizar";
+                var url = $"http://10.0.2.2:5138/api/paseador/paseo/{idPaseo}/finalizar";
                 var requestBody = new { CedulaPaseador = cedulaPaseador };
                 var jsonContent = JsonSerializer.Serialize(requestBody);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");

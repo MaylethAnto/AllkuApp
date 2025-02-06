@@ -9,6 +9,5 @@ namespace TuProyecto.Models
         public int IdNotificacion { get; set; }
         public int IdCanino { get; set; }
         public string Mensaje { get; set; }
-        public string NumeroPaseador { get; set; }
     }
 }

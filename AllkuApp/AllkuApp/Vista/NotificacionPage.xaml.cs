@@ -8,16 +8,14 @@ namespace AllkuApp.Vista
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class NotificacionPage : ContentPage
     {
-        private string _numeroPaseador;
         private int _idNotificacion;
         private readonly ApiService _apiService;
 
-        public NotificacionPage(string message, string numeroPaseador, int idNotificacion)
+        public NotificacionPage(string message, int idNotificacion)
         {
             InitializeComponent();
             // Set the notification message and paseador's number
             NotificationMessage.Text = message;
-            _numeroPaseador = numeroPaseador;
             _idNotificacion = idNotificacion;
         }
         private async void OnBackButtonClicked(object sender, EventArgs e)

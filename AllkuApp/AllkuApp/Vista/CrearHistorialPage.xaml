@@ -28,6 +28,7 @@
 
                     <Label Grid.Column="1" Text="Nuevo Historial Clínico"
                            FontSize="24"
+                           FontAttributes="Bold"
                            HorizontalOptions="Center"
                            VerticalOptions="Center"
                            Margin="0,0,0,20"/>
@@ -45,7 +46,7 @@
                     <Picker.Items>
                         <x:String>Vacunación</x:String>
                         <x:String>Control Rutinario</x:String>
-                        <x:String>Emergencia</x:String>
+                        <x:String>Desparasitaciones</x:String>
                         <x:String>Cirugía</x:String>
                         <x:String>Tratamiento</x:String>
                     </Picker.Items>
@@ -75,9 +76,9 @@
                         HeightRequest="45"
                         WidthRequest="160" />
 
-                <Button Text="Cancelar"
-                        Clicked="OnCancelarClicked"
-                        BackgroundColor="#FF3B3B"
+                <Button Text="Listado de Historiales"
+                        Clicked="OnListaClicked"
+                        BackgroundColor="Green"
                         TextColor="White"
                         CornerRadius="10"
                         FontAttributes="Bold"

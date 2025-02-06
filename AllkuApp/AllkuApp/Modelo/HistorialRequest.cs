@@ -15,8 +15,6 @@ namespace AllkuApp.Modelo
 
         public string descripcion_historial { get; set; }
 
-        public bool notificacion_historial { get; set; }
-
         public int id_canino { get; set; }
 
 

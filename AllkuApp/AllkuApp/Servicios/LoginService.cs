@@ -24,7 +24,7 @@ namespace AllkuApp.Servicios
     public class LoginService
     {
         private readonly HttpClient _httpClient;
-        private const string ApiUrl = "https://allkuapi.sytes.net/api/Login/Login";
+        private const string ApiUrl = "http://10.0.2.2:5138/api/Login/Login";
         private const string PerfilCaninoKey = "PerfilCanino";
 
         public LoginService()
@@ -98,7 +98,7 @@ namespace AllkuApp.Servicios
 
         public async Task<bool> EsPrimeraVez(string nombreUsuario)
         {
-            var response = await _httpClient.GetAsync($"https://allkuapi.sytes.net/api/Login/esprimavez?username={nombreUsuario}");
+            var response = await _httpClient.GetAsync($"http://10.0.2.2:5138/api/Login/esprimavez?username={nombreUsuario}");
 
             if (response.IsSuccessStatusCode)
             {

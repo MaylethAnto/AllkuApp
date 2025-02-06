@@ -1,6 +1,7 @@
 ﻿using AllkuApp.Services;
 using AllkuApp.Vista;
 using AllkuApp.Dtos;
+using AllkuApp.Modelo;
 using AllkuApp.Servicios;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,6 @@ using Xamarin.Forms.Xaml;
 using ModeloReceta = AllkuApp.Modelo.Receta;
 using ServicioReceta = AllkuApp.Services.Receta;
 using CreateRecetaRequest = AllkuApp.Services.CreateRecetaRequest;
-using AllkuApp.Modelo;
 
 namespace AllkuApp.Vista
 {
@@ -220,7 +220,7 @@ namespace AllkuApp.Vista
             var notificacion = await _apiService.GetLatestNotificationAsync();
             if (notificacion != null)
             {
-                await Navigation.PushAsync(new NotificacionPage(notificacion.Mensaje, notificacion.NumeroPaseador, notificacion.IdNotificacion));
+                await Navigation.PushAsync(new NotificacionPage(notificacion.Mensaje, notificacion.IdNotificacion));
             }
         }
 

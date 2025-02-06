@@ -13,7 +13,7 @@ namespace AllkuApp.Services
     public class RecetaService
     {
         private readonly HttpClient _httpClient;
-        private const string BaseUrl = "https://allkuapi.sytes.net/api/Recetas";
+        private const string BaseUrl = "http://10.0.2.2:5138/api/Recetas";
 
         public RecetaService()
         {

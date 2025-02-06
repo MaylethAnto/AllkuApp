@@ -11,7 +11,6 @@ namespace AllkuApp.Modelo
         public DateTime fecha_historial { get; set; }
         public string tipo_historial { get; set; }
         public string descripcion_historial { get; set; }
-        public bool notificacion_historial { get; set; }
         public Canino Canino { get; set; }
 
     }

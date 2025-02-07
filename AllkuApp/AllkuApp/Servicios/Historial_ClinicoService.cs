@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Net.Http.Headers;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
@@ -13,7 +13,7 @@ namespace AllkuApp.Servicios
     {
         private readonly HttpClient _httpClient;
         private readonly string _baseUrl = "http://10.0.2.2:5138/api/HistorialClinico";
-        private readonly string _notificacionesUrl = "http://10.0.2.2:5138/api/Notificaciones";
+        private readonly string _notificacionesUrl = "http://10.0.2.2:5138/api/Notificacion/enviar";
 
         public Historial_ClinicoService()
         {
@@ -113,12 +113,12 @@ namespace AllkuApp.Servicios
 
         private async Task EnviarNotificacionAsync(HistorialRequest historialRequest)
         {
-            var notification = new
+            var notification = new NotificacionDto
             {
-                mensaje = $"Recordatorio: {historialRequest.descripcion_historial}",
-                cedulaDueno = historialRequest.id_canino, // Ajusta esto según tu lógica de negocio
-                fecha = historialRequest.fecha_historial.ToString("yyyy-MM-ddTHH:mm:ss"),
-                leida = false
+                Mensaje = $"Recordatorio: {historialRequest.descripcion_historial} (Fecha: {historialRequest.fecha_historial:dd/MM/yyyy})",
+                IdCanino = historialRequest.id_canino,
+                NumeroPaseador = "", // Add if needed
+                Fecha = historialRequest.fecha_historial
             };
 
             var json = JsonConvert.SerializeObject(notification);
@@ -264,5 +264,7 @@ namespace AllkuApp.Servicios
         public string CedulaDueno { get; set; }
         public DateTime Fecha { get; set; }
         public bool Leida { get; set; }
+        public string NumeroPaseador { get; set; }
+        public int IdCanino { get; set; } // Asegúrate de incluir este campo
     }
 }

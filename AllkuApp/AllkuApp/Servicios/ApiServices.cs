@@ -12,14 +12,14 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 using Xamarin.Essentials;
 using AllkuApp.Dtos;
 using TuProyecto.Models;
+using JsonException = System.Text.Json.JsonException;
 
 namespace AllkuApp.Servicios
 {
     public class ApiService
     {
         private readonly HttpClient _client;
-        private readonly string _baseUrl = "http://10.0.2.2:5138/api/Canino";
-
+        private readonly string _baseUrl = "https://allkuapi-production.up.railway.app/api";
 
         public ApiService()
         {
@@ -32,7 +32,7 @@ namespace AllkuApp.Servicios
         {
             try
             {
-                var response = await _client.GetAsync($"{_baseUrl}");
+                var response = await _client.GetAsync($"{_baseUrl}/Canino");
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
@@ -52,46 +52,36 @@ namespace AllkuApp.Servicios
             }
         }
 
-        //metodo obtener canino por id
-
-
-
         // Método para obtener los datos del dueño por cédula
-
         public async Task<Dueno> ObtenerDuenoPorCedulaAsync(string cedula)
         {
             try
             {
-                var response = await _client.GetAsync($"http://10.0.2.2:5138/api/Canino/usuarios?cedulaDueno={cedula}");
-
+                var response = await _client.GetAsync($"{_baseUrl}/Canino/usuarios?cedulaDueno={cedula}");
                 if (response.IsSuccessStatusCode)
                 {
-                    // Lee la respuesta como un string
                     var content = await response.Content.ReadAsStringAsync();
-
-                    // Deserializa el JSON en un objeto Dueno
                     var dueno = JsonConvert.DeserializeObject<Dueno>(content);
-                    return dueno; // Retorna los datos del dueño si se encontró
+                    return dueno;
                 }
                 else
                 {
-                    return null; // Si no se encuentra el dueño, retorna null
+                    return null;
                 }
             }
             catch (Exception ex)
             {
-                await App.Current.MainPage.DisplayAlert("Error", $"Error inesperado: {ex.Message}", "OK");
-                return null;
+                Debug.WriteLine($"Error: {ex.Message}");
+                throw;
             }
         }
 
-        //metodo para obtener los caninos por medio de la cedula del dueño
         // Método para obtener los caninos por cédula del dueño
         public async Task<List<CaninoDto>> GetCaninosByCedulaDuenoAsync(string cedulaDueno)
         {
             try
             {
-                var response = await _client.GetAsync($"{_baseUrl}/caninosPorCedula?cedulaDueno={cedulaDueno}");
+                var response = await _client.GetAsync($"{_baseUrl}/Canino/caninosPorCedula?cedulaDueno={cedulaDueno}");
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
@@ -111,25 +101,16 @@ namespace AllkuApp.Servicios
             }
         }
 
-
         public async Task<string> RegistrarCaninoAsync(CaninoRequest caninoRequest)
         {
             try
             {
-                // Supongamos que tienes una URL base y un endpoint para registrar la mascota
-                string url = $"{_baseUrl}/RegistrarCanino";
-
-                // Serializar el objeto canino a JSON
+                string url = $"{_baseUrl}/Canino/RegistrarCanino";
                 var json = JsonConvert.SerializeObject(caninoRequest);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                // Hacer una solicitud POST al API
                 var response = await _client.PostAsync(url, content);
-
-                // Leer la respuesta del API
                 var responseContent = await response.Content.ReadAsStringAsync();
 
-                // Verificar el estado de la respuesta
                 if (response.IsSuccessStatusCode)
                 {
                     return "Success";
@@ -147,7 +128,7 @@ namespace AllkuApp.Servicios
             }
         }
 
-        //metodos para notificaciones 
+        // Métodos para notificaciones 
         public async Task<(bool, string)> EnviarNotificacionAsync(int idCanino, string mensaje, string numeroPaseador)
         {
             var notificacionRequest = new
@@ -162,34 +143,28 @@ namespace AllkuApp.Servicios
 
             try
             {
-                var response = await _client.PostAsync("http://10.0.2.2:5138/api/Notificacion/enviar", content);
-
+                var response = await _client.PostAsync($"{_baseUrl}/Notificacion/enviar", content);
                 if (!response.IsSuccessStatusCode)
                 {
-                    // Capturar el contenido de la respuesta de error
                     var responseContent = await response.Content.ReadAsStringAsync();
                     return (false, $"Error al enviar la notificación: {responseContent}");
                 }
-
                 return (true, "Notificación enviada exitosamente.");
             }
             catch (HttpRequestException httpEx)
             {
-                // Capturar errores de solicitud HTTP
                 return (false, $"Error de solicitud HTTP: {httpEx.Message}");
             }
             catch (Exception ex)
             {
-                // Capturar cualquier otro tipo de error
                 return (false, $"Error: {ex.Message}");
             }
         }
 
-
         public async Task<bool> CheckForNotificationsAsync()
         {
             var cedulaDueno = Preferences.Get("CedulaDueno", string.Empty);
-            var response = await _client.GetAsync($"http://10.0.2.2:5138/api/Notificacion/check?cedulaDueno={cedulaDueno}");
+            var response = await _client.GetAsync($"{_baseUrl}/Notificacion/check?cedulaDueno={cedulaDueno}");
             if (response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync();
@@ -201,7 +176,7 @@ namespace AllkuApp.Servicios
         public async Task<NotificacionDto> GetLatestNotificationAsync()
         {
             var cedulaDueno = Preferences.Get("CedulaDueno", string.Empty);
-            var response = await _client.GetAsync($"http://10.0.2.2:5138/api/Notificacion/ultima?cedulaDueno={cedulaDueno}");
+            var response = await _client.GetAsync($"{_baseUrl}/Notificacion/ultima?cedulaDueno={cedulaDueno}");
             if (response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync();
@@ -217,7 +192,7 @@ namespace AllkuApp.Servicios
                 idNotificacion = idNotificacion
             }), Encoding.UTF8, "application/json");
 
-            var response = await _client.PutAsync($"http://10.0.2.2:5138/api/Notificacion/marcarComoLeida", content);
+            var response = await _client.PutAsync($"{_baseUrl}/Notificacion/marcarComoLeida", content);
             if (!response.IsSuccessStatusCode)
             {
                 Console.WriteLine($"Error al marcar la notificación como leída: {response.ReasonPhrase}");
@@ -225,64 +200,91 @@ namespace AllkuApp.Servicios
         }
 
         // Métodos para Ejercicio
-        public async Task<List<DistanciaRecorridaModel>> ObtenerDistanciasAsync(int idCanino)
+        public async Task<DistanciaRecorridaModel> ObtenerDistanciaRecorridaAsync(int idCanino)
         {
             try
             {
-                using (var client = new HttpClient())
+                var response = await _client.GetAsync($"{_baseUrl}/Gps/distancia/{idCanino}");
+                if (response.IsSuccessStatusCode)
                 {
-                    var response = await client.GetAsync($"http://10.0.2.2:5138/api/Gps/distancia?id_canino={idCanino}");
+                    var json = await response.Content.ReadAsStringAsync();
+                    return JsonConvert.DeserializeObject<DistanciaRecorridaModel>(json);
+                }
+                else
+                {
+                    Debug.WriteLine($"Error: {response.ReasonPhrase}");
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error: {ex.Message}");
+                throw;
+            }
+        }
 
-                    if (response.IsSuccessStatusCode)
+
+        public async Task<List<PaseoModel>> ObtenerPaseosFinalizadosAsync(int idCanino)
+        {
+            var url = $"{_baseUrl}/Gps/paseos-finalizados/{idCanino}";
+            try
+            {
+                var response = await _client.GetAsync(url);
+                if (!response.IsSuccessStatusCode)
+                {
+                    Debug.WriteLine($"Error: {response.ReasonPhrase}");
+                    return null;
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine($"JSON recibido: {json}"); // Para verificar qué estás recibiendo
+
+                // Intenta deserializar como lista primero
+                try
+                {
+                    var result = JsonConvert.DeserializeObject<List<PaseoModel>>(json);
+                    return result ?? new List<PaseoModel>();
+                }
+                catch
+                {
+                    // Si falla, intenta deserializar como un solo objeto
+                    try
                     {
-                        var json = await response.Content.ReadAsStringAsync();
-                        return JsonConvert.DeserializeObject<List<DistanciaRecorridaModel>>(json);
+                        var singleResult = JsonConvert.DeserializeObject<PaseoModel>(json);
+                        return singleResult != null ? new List<PaseoModel> { singleResult } : new List<PaseoModel>();
                     }
-                    else
+                    catch
                     {
-                        return null;
+                        // Si también falla, verifica si es un mensaje de error
+                        try
+                        {
+                            var message = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+                            if (message != null && message.ContainsKey("Message"))
+                            {
+                                Debug.WriteLine(message["Message"]);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Error al intentar parsear el JSON: {ex.Message}");
+                        }
+
+                        return new List<PaseoModel>();
                     }
                 }
             }
             catch (Exception ex)
             {
-                // Manejo de errores
-                Console.WriteLine($"Error al consumir el API: {ex.Message}");
-                return null;
-            }
-        }
-
-        public async Task<List<PaseoModel>> ObtenerPaseosFinalizadosAsync(int idCanino)
-        {
-            // Cambiamos la URL para usar el parámetro en la ruta en lugar de query parameter
-            var url = $"http://10.0.2.2:5138/api/Gps/paseos-finalizados/{idCanino}";
-            try
-            {
-                var response = await _client.GetStringAsync(url);
-                Debug.WriteLine($"Respuesta API: {response}");
-
-                var paseos = JsonConvert.DeserializeObject<List<PaseoModel>>(response);
-                return paseos ?? new List<PaseoModel>();
-            }
-            catch (HttpRequestException ex)
-            {
-                Debug.WriteLine($"Error de HTTP: {ex.Message}");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error inesperado: {ex.Message}");
+                Debug.WriteLine($"Error: {ex.Message}");
                 throw;
             }
         }
-
-
 
         public async Task<List<PaseadorDisponibleDto>> GetPaseadoresDisponiblesAsync()
         {
             try
             {
-                var response = await _client.GetAsync($"http://10.0.2.2:5138/api/Paseador/disponibles");
+                var response = await _client.GetAsync($"{_baseUrl}/Paseador/disponibles");
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
@@ -304,7 +306,7 @@ namespace AllkuApp.Servicios
             {
                 var json = JsonSerializer.Serialize(solicitud);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _client.PostAsync($"http://10.0.2.2:5138/api/Paseador/solicitud", content);
+                var response = await _client.PostAsync($"{_baseUrl}/Paseador/solicitud", content);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
@@ -318,7 +320,7 @@ namespace AllkuApp.Servicios
         {
             try
             {
-                var url = $"http://10.0.2.2:5138/api/Paseador/{cedula}/solicitudes";
+                var url = $"{_baseUrl}/Paseador/{cedula}/solicitudes";
                 var response = await _client.GetAsync(url);
 
                 if (response.IsSuccessStatusCode)
@@ -340,14 +342,10 @@ namespace AllkuApp.Servicios
             }
         }
 
-
-
-
         public async Task<bool> ResponderSolicitudAsync(int idSolicitud, string cedulaPaseador, bool aceptada)
         {
             try
             {
-
                 var respuesta = new RespuestaSolicitudDto
                 {
                     CedulaPaseador = cedulaPaseador,
@@ -355,7 +353,7 @@ namespace AllkuApp.Servicios
                 };
                 var json = JsonSerializer.Serialize(respuesta);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _client.PutAsync($"http://10.0.2.2:5138/api/Paseador/solicitud/{idSolicitud}/responder", content);
+                var response = await _client.PutAsync($"{_baseUrl}/Paseador/solicitud/{idSolicitud}/responder", content);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
@@ -369,7 +367,7 @@ namespace AllkuApp.Servicios
         {
             try
             {
-                var url = $"http://10.0.2.2:5138/api/Paseador/ObtenerIdPaseoPorIdSolicitud/{idSolicitud}";
+                var url = $"{_baseUrl}/Paseador/ObtenerIdPaseoPorIdSolicitud/{idSolicitud}";
                 var response = await _client.GetAsync(url);
 
                 if (response.IsSuccessStatusCode)
@@ -398,7 +396,7 @@ namespace AllkuApp.Servicios
                     throw new ArgumentException("ID de paseo debe ser un número entero positivo y cédula del paseador no puede estar vacía.");
                 }
 
-                var url = $"http://10.0.2.2:5138/api/paseador/paseo/{idPaseo}/finalizar";
+                var url = $"{_baseUrl}/Paseador/paseo/{idPaseo}/finalizar";
                 var requestBody = new { CedulaPaseador = cedulaPaseador };
                 var jsonContent = JsonSerializer.Serialize(requestBody);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
@@ -422,9 +420,6 @@ namespace AllkuApp.Servicios
             }
         }
 
-
-
-
         public async Task<bool> ActualizarEstadoPaseoAsync(ActualizacionPaseoDto actualizacion)
         {
             try
@@ -434,7 +429,7 @@ namespace AllkuApp.Servicios
                 var endpoint = actualizacion.EsFinalizar ? "finalizar" : "iniciar";
 
                 var response = await _client.PutAsync(
-                    $"{_baseUrl}paseador/paseo/{actualizacion.IdSolicitud}/{endpoint}",
+                    $"{_baseUrl}/Paseador/paseo/{actualizacion.IdSolicitud}/{endpoint}",
                     content);
 
                 return response.IsSuccessStatusCode;
@@ -451,7 +446,7 @@ namespace AllkuApp.Servicios
         {
             try
             {
-                var response = await _client.GetAsync($"{_baseUrl}perfiles");
+                var response = await _client.GetAsync($"{_baseUrl}/perfiles");
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
@@ -472,7 +467,7 @@ namespace AllkuApp.Servicios
             {
                 var json = JsonConvert.SerializeObject(perfil);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _client.PostAsync($"{_baseUrl}perfiles", content);
+                var response = await _client.PostAsync($"{_baseUrl}/perfiles", content);
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonResponse = await response.Content.ReadAsStringAsync();
@@ -508,8 +503,135 @@ namespace AllkuApp.Servicios
             throw new NotImplementedException();
         }
 
+        // Métodos para GPS
+        public async Task<Gps> RegistrarGpsAsync(Gps gps)
+        {
+            try
+            {
+                // Validación exhaustiva del objeto GPS
+                if (gps == null)
+                    throw new ArgumentNullException(nameof(gps), "El objeto GPS no puede ser nulo");
 
+                if (gps.id_canino <= 0)
+                    throw new ArgumentException($"ID de canino no válido: {gps.id_canino}");
 
+                if (gps.iniciolatitud == 0 || gps.iniciolongitud == 0)
+                    throw new ArgumentException("Las coordenadas iniciales no pueden ser cero");
+
+                // Configurar serialización
+                var jsonSettings = new JsonSerializerSettings
+                {
+                    NullValueHandling = NullValueHandling.Ignore,
+                    DateFormatString = "yyyy-MM-ddTHH:mm:ss.fffZ" // Formato ISO 8601
+                };
+
+                var json = JsonConvert.SerializeObject(gps, jsonSettings);
+                Debug.WriteLine($"JSON a enviar: {json}");
+
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _client.PostAsync($"{_baseUrl}/Gps", content);
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine($"Respuesta del servidor: {response.StatusCode} - {responseContent}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorMessage = $"Error al registrar GPS: {response.StatusCode}";
+                    try
+                    {
+                        var errorObj = JsonConvert.DeserializeObject<dynamic>(responseContent);
+                        errorMessage += $". Detalles: {errorObj?.message ?? errorObj?.Message ?? responseContent}";
+                    }
+                    catch
+                    {
+                        errorMessage += $". Respuesta: {responseContent}";
+                    }
+
+                    throw new HttpRequestException(errorMessage);
+                }
+
+                return JsonConvert.DeserializeObject<Gps>(responseContent);
+            }
+            catch (HttpRequestException httpEx)
+            {
+                Debug.WriteLine($"Error HTTP: {httpEx.Message}");
+                throw new Exception("Problema de comunicación con el servidor. Verifica tu conexión.");
+            }
+            catch (JsonException jsonEx)
+            {
+                Debug.WriteLine($"Error JSON: {jsonEx.Message}");
+                throw new Exception("Error procesando la respuesta del servidor.");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error inesperado: {ex}");
+                throw new Exception("Ocurrió un error inesperado al registrar el GPS.");
+            }
+        }
+        public async Task ActualizarGpsAsync(Gps gps)
+        {
+            try
+            {
+                // Verificar que el ID sea válido
+                Debug.WriteLine($"Actualizando GPS con ID: {gps.id_gps}");
+                if (gps.id_gps <= 0)
+                {
+                    throw new ArgumentException($"ID de GPS no válido: {gps.id_gps}");
+                }
+
+                // Verificar que las coordenadas no sean cero o valores extremos
+                Debug.WriteLine($"Coordenadas finales: Lat: {gps.finlatitud}, Long: {gps.finlongitud}");
+
+                var datosFinales = new
+                {
+                    FinLatitud = gps.finlatitud,
+                    FinLongitud = gps.finlongitud
+                };
+
+                // Usar System.Text.Json en lugar de Newtonsoft si es posible
+                var jsonOptions = new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+                };
+                var json = System.Text.Json.JsonSerializer.Serialize(datosFinales, jsonOptions);
+                Debug.WriteLine($"Enviando datos: {json}");
+
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var url = $"{_baseUrl}/Gps/finalizar/{gps.id_gps}";
+                Debug.WriteLine($"URL: {url}");
+
+                // Establecer un timeout más largo
+                _client.Timeout = TimeSpan.FromSeconds(30);
+
+                var response = await _client.PutAsync(url, content);
+                Debug.WriteLine($"Código de respuesta: {(int)response.StatusCode} {response.StatusCode}");
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine($"Contenido de respuesta: {responseContent}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    Debug.WriteLine($"Error del servidor: {(int)response.StatusCode} {response.StatusCode} - {responseContent}");
+                    throw new HttpRequestException($"Error al actualizar GPS: {response.StatusCode}. Respuesta: {responseContent}");
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                Debug.WriteLine($"Error de HTTP: {ex.Message}");
+                throw;
+            }
+            catch (TaskCanceledException ex)
+            {
+                Debug.WriteLine($"Timeout al comunicarse con el servidor: {ex.Message}");
+                throw new Exception("Tiempo de espera agotado al comunicarse con el servidor. Verifica tu conexión de Internet.", ex);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error inesperado: {ex.GetType().Name} - {ex.Message}");
+                Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
+                throw;
+            }
+        }
     }
 
     public class CaninoRequest

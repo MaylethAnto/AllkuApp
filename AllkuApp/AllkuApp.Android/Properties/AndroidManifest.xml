@@ -20,9 +20,9 @@
         android:roundIcon="@mipmap/ic_launcher">
         
         <uses-library android:name="org.apache.http.legacy" android:required="false"/>
-        <meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="AIzaSyAZP3qZ5sdvVWa3ZvioIbiObrdG-lcXS5Q" />
+        <meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="AIzaSyBTeGngxZlCRIXMqjlU9ma5lJeIoQXm4aI" />
         
-        <receiver android:name="pagina1.droid.SmsReceiver"
+        <receiver android:name="AllkuApp.droid.SmsReceiver"
                   android:exported="true"
                   android:enabled="true"
                   android:permission="android.permission.BROADCAST_SMS">

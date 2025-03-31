@@ -21,31 +21,14 @@
 
         <!-- Botones de acción en la parte inferior -->
         <Grid Grid.Row="1" Padding="10" BackgroundColor="White">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <Button Text="Conectar GPS"
-                    Clicked="OnConnectClicked"
+            <Button Text="Mostrar Recorrido"
+                    Clicked="OnMostrarRecorridoClicked"
                     BackgroundColor="#0033CC"
                     TextColor="White"
                     CornerRadius="10"
                     FontAttributes="Bold"
                     HorizontalOptions="FillAndExpand"
                     HeightRequest="50"
-                    Grid.Column="0"
-                    Margin="5"/>
-
-            <Button Text="Obtener Ubicación GPS"
-                    Clicked="OnTrackClicked"
-                    BackgroundColor="#0033CC"
-                    TextColor="White"
-                    CornerRadius="10"
-                    FontAttributes="Bold"
-                    HorizontalOptions="FillAndExpand"
-                    HeightRequest="50"
-                    Grid.Column="1"
                     Margin="5"/>
         </Grid>
     </Grid>

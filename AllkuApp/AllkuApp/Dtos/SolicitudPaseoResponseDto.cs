@@ -7,6 +7,7 @@ namespace AllkuApp.Dtos
     public class SolicitudPaseoResponseDto : INotifyPropertyChanged
     {
         private int _idSolicitud;
+        private int _idCanino;
         private string _nombreCanino;
         private string _nombreDueno;
         private string _celularDueno;
@@ -23,6 +24,16 @@ namespace AllkuApp.Dtos
             set
             {
                 _idSolicitud = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int IdCanino
+        {
+            get => _idCanino;
+            set
+            {
+                _idCanino = value;
                 OnPropertyChanged();
             }
         }
@@ -116,7 +127,6 @@ namespace AllkuApp.Dtos
                 OnPropertyChanged();
             }
         }
-     
 
         public event PropertyChangedEventHandler PropertyChanged;
 

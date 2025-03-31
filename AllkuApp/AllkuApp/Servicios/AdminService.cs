@@ -13,7 +13,7 @@ namespace AllkuApp.Servicios
     public class AdminService
     {
         private readonly HttpClient _client;
-        private readonly string _baseUrl = "http://10.0.2.2:5138/api/Administrador";
+        private readonly string _baseUrl = "https://allkuapi-production.up.railway.app/api/Administrador";
         private readonly ContentPage _page;
 
         public AdminService(ContentPage page)

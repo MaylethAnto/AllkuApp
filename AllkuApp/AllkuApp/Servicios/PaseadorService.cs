@@ -10,7 +10,7 @@ namespace AllkuApp.Servicios
     public class PaseadorService
     {
         private readonly HttpClient _client;
-        private const string BaseUrl = "http://10.0.2.2:5138/api/";
+        private const string BaseUrl = "https://allkuapi-production.up.railway.app/";
 
         public static async Task<List<CaninoConDuenoDTO>> ObtenerCaninosConDuenosAsync()
         {

@@ -11,7 +11,7 @@ namespace AllkuApp.Servicios
     public class AuthService
     {
         private readonly HttpClient _client;
-        private const string BaseUrl = "http://10.0.2.2:5138/api/auth/";
+        private const string BaseUrl = "https://allkuapi-production.up.railway.app/api/auth/";
         
         public AuthService()
         {

@@ -12,6 +12,10 @@ namespace AllkuApp.Modelo
         public DateTime? FechaFin { get; set; }
         public double? DistanciaKm { get; set; }
         public string EstadoPaseo { get; set; }
+        public double? LatitudInicio { get; set; }
+        public double? LongitudInicio { get; set; }
+        public double? LatitudFin { get; set; }
+        public double? LongitudFin { get; set; }
 
     }
 }

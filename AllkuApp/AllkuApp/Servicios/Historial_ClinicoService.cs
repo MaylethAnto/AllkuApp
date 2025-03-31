@@ -12,8 +12,8 @@ namespace AllkuApp.Servicios
     public class Historial_ClinicoService
     {
         private readonly HttpClient _httpClient;
-        private readonly string _baseUrl = "http://10.0.2.2:5138/api/HistorialClinico";
-        private readonly string _notificacionesUrl = "http://10.0.2.2:5138/api/Notificacion/enviar";
+        private readonly string _baseUrl = "https://allkuapi-production.up.railway.app/api/HistorialClinico";
+        private readonly string _notificacionesUrl = "https://allkuapi-production.up.railway.app/api/Notificacion/enviar";
 
         public Historial_ClinicoService()
         {

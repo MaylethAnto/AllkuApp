@@ -8,7 +8,6 @@ using Xamarin.Essentials;
 using AllkuApp.Modelo;
 using System.Linq;
 using System.Diagnostics;
-using System.Net.Http;
 
 namespace AllkuApp.Vista
 {
@@ -16,7 +15,6 @@ namespace AllkuApp.Vista
     public partial class EjerciciosPage : ContentPage
     {
         private bool _isFirstLoad = true;
-        private readonly bool _dataLoaded = false;
         public ObservableCollection<DistanciaModel> Distancia { get; set; } = new ObservableCollection<DistanciaModel>();
 
         private readonly ApiService _apiService;
@@ -45,7 +43,6 @@ namespace AllkuApp.Vista
 
         public Command RefreshCommand { get; }
 
-
         public EjerciciosPage()
         {
             InitializeComponent();
@@ -53,7 +50,6 @@ namespace AllkuApp.Vista
             Distancia = new ObservableCollection<DistanciaModel>();
             RefreshCommand = new Command(async () => await RefreshData());
             BindingContext = this;
-
         }
 
         private async Task RefreshData()
@@ -79,7 +75,7 @@ namespace AllkuApp.Vista
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            if (_isFirstLoad)  // Solo cargar la primera vez
+            if (_isFirstLoad)
             {
                 await CargarPaseosFinalizados();
                 _isFirstLoad = false;
@@ -101,25 +97,30 @@ namespace AllkuApp.Vista
 
                 var paseosFinalizados = await _apiService.ObtenerPaseosFinalizadosAsync(idCanino);
 
-                if (paseosFinalizados?.Any() == true)
+                if (paseosFinalizados == null || !paseosFinalizados.Any())
                 {
-                    // No convertir si las fechas ya están en UTC
-                    var paseosOrdenados = paseosFinalizados
-                        .OrderByDescending(p => p.FechaFin)
-                        .Select(p => new DistanciaModel
-                        {
-                            FechaInicio = p.FechaInicio?.ToLocalTime() ?? DateTime.UtcNow.ToLocalTime(),
-                            FechaFin = p.FechaFin?.ToLocalTime() ?? DateTime.UtcNow.ToLocalTime(),
-                            DistanciaTotal = p.DistanciaKm ?? 0
-                        });
-
-                    foreach (var paseo in paseosOrdenados)
-                    {
-                        Distancia.Add(paseo);
-                    }
+                    IsListaVacia = true;
+                    await DisplayAlert("Información", "No se encontraron paseos finalizados para el canino.", "OK");
+                    return;
                 }
 
-                // Actualizar el estado de IsListaVacia
+                var paseosOrdenados = paseosFinalizados
+                    .OrderByDescending(p => p.FechaFin)
+                    .Select(p => new DistanciaModel
+                    {
+                        FechaInicio = p.FechaInicio?.ToLocalTime() ?? DateTime.UtcNow.ToLocalTime(),
+                        FechaFin = p.FechaFin?.ToLocalTime() ?? DateTime.UtcNow.ToLocalTime(),
+                        LatitudInicio = p.LatitudInicio ?? 0,
+                        LongitudInicio = p.LongitudInicio ?? 0,
+                        LatitudFin = p.LatitudFin ?? 0,
+                        LongitudFin = p.LongitudFin ?? 0
+                    });
+
+                foreach (var paseo in paseosOrdenados)
+                {
+                    Distancia.Add(paseo);
+                }
+
                 IsListaVacia = !Distancia.Any();
             }
             catch (Exception ex)
@@ -127,34 +128,27 @@ namespace AllkuApp.Vista
                 await DisplayAlert("Error", $"Hubo un error al cargar los paseos: {ex.Message}", "OK");
                 Debug.WriteLine($"Error: {ex.Message}");
             }
-               
             finally
             {
                 _isLoading = false;
             }
         }
 
-      
-
-        // Asegúrate de desuscribirte cuando la página se destruya
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
             MessagingCenter.Unsubscribe<object>(this, "PaseoFinalizado");
         }
 
-
         private async void OnElegirPaseadorClicked(object sender, EventArgs e)
         {
             try
             {
-                // Obtener paseadores disponibles
                 var paseadoresDisponibles = await _apiService.GetPaseadoresDisponiblesAsync();
                 if (paseadoresDisponibles?.Count > 0)
                 {
                     var paseadorPage = new PaseadorSelectionPage(paseadoresDisponibles);
                     paseadorPage.PaseadorSeleccionado += async (s, paseador) => {
-                        // Enviar solicitud al paseador
                         var idCanino = Preferences.Get("CaninoId", -1);
                         if (idCanino != -1)
                         {
@@ -200,6 +194,7 @@ namespace AllkuApp.Vista
                 }
             }
         }
+
         private async void OnBackButtonClicked(object sender, EventArgs e)
         {
             await Navigation.PopAsync();

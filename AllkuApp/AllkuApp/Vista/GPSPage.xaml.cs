@@ -53,62 +53,113 @@ namespace AllkuApp.Vista
             map.Pins.Add(pin);
         }
 
-        private void OnConnectClicked(object sender, EventArgs e)
+        private void OnMostrarRecorridoClicked(object sender, EventArgs e)
         {
-            var phoneNumber = "+593959020392";
-            var connectMessage = "000";
-
-            var mainActivity = DependencyService.Get<IMainActivityService>();
-            mainActivity?.SendSms(phoneNumber, connectMessage);
+            MostrarRecorrido();
         }
 
-        private void OnTrackClicked(object sender, EventArgs e)
+        private void MostrarRecorrido()
         {
-            var phoneNumber = "+593959020392";
-            var trackMessage = "777";
+            var latitudInicioStr = Preferences.Get("LatitudInicio", null);
+            var longitudInicioStr = Preferences.Get("LongitudInicio", null);
+            var latitudFinalStr = Preferences.Get("LatitudFinal", null);
+            var longitudFinalStr = Preferences.Get("LongitudFinal", null);
 
-            var mainActivity = DependencyService.Get<IMainActivityService>();
-            mainActivity?.SendSms(phoneNumber, trackMessage);
-
-            timer = new Timer(60000);
-            timer.Elapsed += (s, args) =>
+            if (latitudInicioStr != null && longitudInicioStr != null && latitudFinalStr != null && longitudFinalStr != null)
             {
-                mainActivity?.SendSms(phoneNumber, trackMessage);
-            };
-            timer.Start();
+                if (double.TryParse(latitudInicioStr, out double latitudInicio) &&
+                    double.TryParse(longitudInicioStr, out double longitudInicio) &&
+                    double.TryParse(latitudFinalStr, out double latitudFinal) &&
+                    double.TryParse(longitudFinalStr, out double longitudFinal))
+                {
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        try
+                        {
+                            // Limpiar pins existentes
+                            map.Pins.Clear();
+
+                            var posicionInicio = new Position(latitudInicio, longitudInicio);
+                            var posicionFinal = new Position(latitudFinal, longitudFinal);
+
+                            // Crear pin de inicio
+                            var pinInicio = new Pin
+                            {
+                                Type = PinType.Place,
+                                Position = posicionInicio,
+                                Label = "Inicio del Paseo",
+                                Address = $"Lat: {latitudInicio}, Long: {longitudInicio}"
+                            };
+
+                            // Crear pin de final
+                            var pinFinal = new Pin
+                            {
+                                Type = PinType.Place,
+                                Position = posicionFinal,
+                                Label = "Fin del Paseo",
+                                Address = $"Lat: {latitudFinal}, Long: {longitudFinal}"
+                            };
+
+                            // Agregar los pins al mapa
+                            map.Pins.Add(pinInicio);
+                            map.Pins.Add(pinFinal);
+
+                            // Crear una línea para representar el recorrido
+                            var recorrido = new Polyline
+                            {
+                                StrokeColor = Color.Blue,
+                                StrokeWidth = 5
+                            };
+
+                            recorrido.Positions.Add(posicionInicio);
+                            recorrido.Positions.Add(posicionFinal);
+
+                            // Agregar la línea al mapa
+                            map.Polylines.Add(recorrido);
+
+                            // Mover el mapa para mostrar el recorrido completo
+                            var bounds = new Bounds(posicionInicio, posicionFinal);
+                            map.MoveToRegion(MapSpan.FromBounds(bounds));
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error mostrando recorrido en el mapa: {ex.Message}");
+                        }
+                    });
+                }
+            }
         }
 
-        public void UpdateMap(double latitude, double longitude)
+        // Método para actualizar la ubicación en el mapa
+        public void UpdateMap(double latitud, double longitud)
         {
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 try
                 {
-                    Console.WriteLine($"UpdateMap called with: Latitude = {latitude}, Longitude = {longitude}");
-
                     // Limpiar pins existentes
                     map.Pins.Clear();
 
-                    var position = new Position(latitude, longitude);
+                    var nuevaPosicion = new Position(latitud, longitud);
 
-                    // Crear nuevo pin
-                    var pin = new Pin
+                    // Crear un nuevo pin en la nueva posición
+                    var pinNuevo = new Pin
                     {
                         Type = PinType.Place,
-                        Position = position,
-                        Label = "GF-07 Tracker",
-                        Address = $"Lat: {latitude}, Long: {longitude}"
+                        Position = nuevaPosicion,
+                        Label = "Nueva Ubicación",
+                        Address = $"Lat: {latitud}, Long: {longitud}"
                     };
 
-                    // Agregar el nuevo pin
-                    map.Pins.Add(pin);
+                    // Agregar el nuevo pin al mapa
+                    map.Pins.Add(pinNuevo);
 
                     // Mover el mapa a la nueva posición
-                    map.MoveToRegion(MapSpan.FromCenterAndRadius(position, Distance.FromKilometers(1)));
+                    map.MoveToRegion(MapSpan.FromCenterAndRadius(nuevaPosicion, Distance.FromKilometers(1)));
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error updating map: {ex.Message}");
+                    Console.WriteLine($"Error actualizando mapa: {ex.Message}");
                 }
             });
         }

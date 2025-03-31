@@ -1,8 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:convertidores="clr-namespace:AllkuApp.Convertidores"
              x:Class="AllkuApp.Vista.PaseadoresPage"
              NavigationPage.HasNavigationBar="False">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <convertidores:EstadoToConectarGpsVisibilityConverter x:Key="EstadoToConectarGpsVisibilityConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
     <Grid BackgroundColor="White">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -30,7 +37,6 @@
                         Clicked="OnMenuPaseador_Clicked"/>
         </Grid>
 
-        
         <!-- Contenido Principal -->
         <RefreshView Grid.Row="1"
               Command="{Binding RefreshCommand}"
@@ -111,11 +117,22 @@
                                                         Clicked="OnFinalizarPaseoClicked"
                                                         CommandParameter="{Binding .}"/>
                                                 </StackLayout>
+
+                                                <!-- Botón para conectar el GPS -->
+                                                <Button Text="Conectar GPS"
+                                                        BackgroundColor="#0033CC"
+                                                        TextColor="White"
+                                                        CornerRadius="5"
+                                                        Padding="20,5"
+                                                        Margin="5"
+                                                        IsVisible="{Binding Estado, Converter={StaticResource EstadoToConectarGpsVisibilityConverter}}"
+                                                        Clicked="OnConectarGpsClicked"
+                                                        CommandParameter="{Binding .}"/>
                                             </StackLayout>
 
                                             <!-- Botón de eliminar -->
                                             <Button Grid.Column="1"
-                                                Text="×"
+                                                Text="✕"
                                                 FontSize="20"
                                                 WidthRequest="30"
                                                 HeightRequest="30"

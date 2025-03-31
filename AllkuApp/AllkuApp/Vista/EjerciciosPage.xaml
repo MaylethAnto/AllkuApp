@@ -1,10 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:convertidores="clr-namespace:AllkuApp.Convertidores"
              x:Class="AllkuApp.Vista.EjerciciosPage"
              Title="Ejercicio Canino"
              NavigationPage.HasNavigationBar="False"
              BackgroundColor="White">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <convertidores:InverseBoolConverter x:Key="InverseBoolConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -40,32 +48,31 @@
         <RefreshView Grid.Row="1"
                      Command="{Binding RefreshCommand}"
                      IsRefreshing="{Binding IsRefreshing}">
-            <ScrollView >
+            <ScrollView>
                 <StackLayout Padding="20">
                     <!-- Botón Elegir Paseador -->
                     <Button Text="Elegir Paseador"
-                        Clicked="OnElegirPaseadorClicked"
-                        BackgroundColor="#0033CC"
-                        TextColor="White"
-                        CornerRadius="10"
-                        FontAttributes="Bold"
-                        HorizontalOptions="FillAndExpand"
-                        HeightRequest="50"
-                        Margin="0,0,0,20" />
+                            Clicked="OnElegirPaseadorClicked"
+                            BackgroundColor="#0033CC"
+                            TextColor="White"
+                            CornerRadius="10"
+                            FontAttributes="Bold"
+                            HorizontalOptions="FillAndExpand"
+                            HeightRequest="50"
+                            Margin="0,0,0,20" />
 
                     <!-- Mensaje cuando la lista esté vacía -->
-                    <Label 
-                        Text="Aún no hay ningún paseo registrado."
-                        IsVisible="{Binding IsListaVacia}"
-                        HorizontalOptions="Center"
-                        VerticalOptions="Center"
-                        FontSize="Medium" />
-
+                    <Label Text="Aún no hay ningún paseo registrado."
+                           IsVisible="{Binding IsListaVacia}"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"
+                           FontSize="Medium" />
 
                     <!-- ListView para mostrar el recorrido -->
                     <ListView x:Name="DistanciaListView"
-          ItemsSource="{Binding Distancia}"
-          HasUnevenRows="True">
+                              ItemsSource="{Binding Distancia}"
+                              HasUnevenRows="True"
+                              IsVisible="{Binding IsListaVacia, Converter={StaticResource InverseBoolConverter}}">
                         <ListView.Header>
                             <StackLayout Orientation="Horizontal" Padding="10">
                                 <Label Text="Fecha Inicio" HorizontalOptions="StartAndExpand"/>
@@ -78,11 +85,11 @@
                                 <ViewCell>
                                     <StackLayout Orientation="Horizontal" Padding="10">
                                         <Label Text="{Binding FechaInicio, StringFormat='{0:dd/MM/yyyy HH:mm:ss}'}" 
-                                           HorizontalOptions="StartAndExpand"/>
+                                               HorizontalOptions="StartAndExpand"/>
                                         <Label Text="{Binding FechaFin, StringFormat='{0:dd/MM/yyyy HH:mm:ss}'}" 
-                                           HorizontalOptions="CenterAndExpand"/>
+                                               HorizontalOptions="CenterAndExpand"/>
                                         <Label Text="{Binding DistanciaTotal, StringFormat='{0:F1} KM'}" 
-                           HorizontalOptions="End"/>
+                                               HorizontalOptions="End"/>
                                     </StackLayout>
                                 </ViewCell>
                             </DataTemplate>

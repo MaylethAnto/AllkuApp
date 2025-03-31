@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Xamarin.Forms;
 using System.Diagnostics;
 using System.Threading;
+using AllkuApp.Servicios;
 
 namespace AllkuApp
 {
@@ -12,10 +13,13 @@ namespace AllkuApp
     {
         private bool isHandlingException = false;
         private static readonly SemaphoreSlim _logoutSemaphore = new SemaphoreSlim(1, 1);
-
+        public static double LastReceivedLatitude { get; set; }
+        public static double LastReceivedLongitude { get; set; }
+        public static bool HasPendingCoordinates { get; set; }
         public App()
         {
             InitializeComponent();
+            DependencyService.Register<INavigationService, NavigationService>();
             MainPage = new SplashPage();
             Routing.RegisterRoute("forgotpassword", typeof(ForgotPasswordPage));
 
@@ -150,6 +154,17 @@ namespace AllkuApp
             {
                 Debug.WriteLine($"Error en OnResume: {ex}");
                 await ForceLogoutUser();
+            }
+        }
+
+        private void App_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            // Registrar la excepción no controlada
+            var exception = e.ExceptionObject as Exception;
+            if (exception != null)
+            {
+                // Aquí puedes registrar la excepción en un archivo, base de datos o servicio de registro
+                Console.WriteLine($"Excepción no controlada: {exception.Message}");
             }
         }
     }

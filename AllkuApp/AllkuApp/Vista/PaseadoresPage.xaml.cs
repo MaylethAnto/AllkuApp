@@ -17,7 +17,9 @@ namespace AllkuApp.Vista
     {
         private readonly ApiService _apiService;
         private ObservableCollection<SolicitudPaseoResponseDto> _solicitudes;
-
+        private double? _latitudInicio;
+        private double? _longitudInicio;
+        private static Dictionary<int, int> IdGpsPorCanino = new Dictionary<int, int>();
 
         public PaseadoresPage()
         {
@@ -64,9 +66,9 @@ namespace AllkuApp.Vista
 
             SolicitudesListView.ItemsSource = _solicitudes;
         }
+
         private void ActualizarEstadoBotones(SolicitudPaseoResponseDto solicitud)
         {
-            // Normalizar el estado a minúsculas para comparación consistente
             var estado = solicitud.Estado?.ToLower();
 
             switch (estado)
@@ -106,7 +108,6 @@ namespace AllkuApp.Vista
             }
         }
 
-
         protected override async void OnAppearing()
         {
             base.OnAppearing();
@@ -126,23 +127,19 @@ namespace AllkuApp.Vista
 
                 var nuevasSolicitudes = await _apiService.GetSolicitudesPaseadorAsync(cedula);
 
-                // Ordenar las nuevas solicitudes por fecha
                 nuevasSolicitudes = nuevasSolicitudes.OrderByDescending(s => s.FechaSolicitud).ToList();
 
                 foreach (var nuevaSolicitud in nuevasSolicitudes)
                 {
-                    // Verificar si la solicitud ya existe
                     var solicitudExistente = _solicitudes.FirstOrDefault(s => s.IdSolicitud == nuevaSolicitud.IdSolicitud);
 
                     if (solicitudExistente == null)
                     {
-                        // Si es una nueva solicitud, configurar sus propiedades
                         nuevaSolicitud.MostrarBotonesRespuesta = true;
                         nuevaSolicitud.MostrarBotonesPaseo = false;
                         nuevaSolicitud.PuedeIniciar = false;
                         nuevaSolicitud.PuedeFinalizar = false;
 
-                        // Convertir fechas a hora de Ecuador (UTC-5)
                         nuevaSolicitud.FechaSolicitud = TimeZoneInfo.ConvertTimeFromUtc(
                             nuevaSolicitud.FechaSolicitud,
                             TimeZoneInfo.CreateCustomTimeZone(
@@ -157,19 +154,16 @@ namespace AllkuApp.Vista
                     }
                     else
                     {
-                        // Si la solicitud ya existe, actualizar su estado si es necesario
                         ActualizarEstadoBotones(solicitudExistente);
                     }
                 }
 
-                // Ordenar la colección completa
                 var solicitudesOrdenadas = new ObservableCollection<SolicitudPaseoResponseDto>(
                     _solicitudes.OrderByDescending(s => s.FechaSolicitud)
                 );
                 _solicitudes = solicitudesOrdenadas;
                 SolicitudesListView.ItemsSource = _solicitudes;
 
-                // Guardar el estado actual en las preferencias
                 GuardarSolicitudes();
             }
             catch (Exception ex)
@@ -178,6 +172,7 @@ namespace AllkuApp.Vista
                 await DisplayAlert("Error", "No se pudieron cargar las solicitudes.", "OK");
             }
         }
+
         private void GuardarSolicitudes()
         {
             try
@@ -215,7 +210,6 @@ namespace AllkuApp.Vista
             }
         }
 
-
         private async void OnAceptarClicked(object sender, EventArgs e)
         {
             var solicitud = (SolicitudPaseoResponseDto)((Button)sender).CommandParameter;
@@ -230,18 +224,107 @@ namespace AllkuApp.Vista
             GuardarSolicitudes();
         }
 
+        private async Task<Location> ObtenerUbicacionAsync()
+        {
+            try
+            {
+                return await Geolocation.GetLastKnownLocationAsync() ??
+                       await Geolocation.GetLocationAsync(new GeolocationRequest
+                       {
+                           DesiredAccuracy = GeolocationAccuracy.High,
+                           Timeout = TimeSpan.FromSeconds(10)
+                       });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error obteniendo ubicación: {ex.Message}");
+                return null;
+            }
+        }
         private async void OnIniciarPaseoClicked(object sender, EventArgs e)
         {
-            var solicitud = (SolicitudPaseoResponseDto)((Button)sender).CommandParameter;
-            solicitud.Estado = "En Progreso";
-            solicitud.PuedeIniciar = false;
-            solicitud.PuedeFinalizar = true;
-            solicitud.MostrarBotonesPaseo = true;
-            GuardarSolicitudes();
-            await DisplayAlert("Éxito", $"Paseo {solicitud.IdSolicitud} iniciado.", "OK");
-            
-        }
+            try
+            {
+                // Validar el objeto sender y CommandParameter
+                if (!(sender is Button button) || !(button.CommandParameter is SolicitudPaseoResponseDto solicitud))
+                {
+                    await DisplayAlert("Error", "No se pudo obtener la información de la solicitud.", "OK");
+                    return;
+                }
 
+                // Validar ID del canino
+                if (solicitud.IdCanino <= 0)
+                {
+                    Debug.WriteLine($"⚠️ ID de canino no válido: {solicitud.IdCanino}");
+                    await DisplayAlert("Error", "El ID del perro no es válido. No se puede iniciar el paseo.", "OK");
+                    return;
+                }
+
+                // Obtener ubicación con validación
+                var ubicacion = await ObtenerUbicacionAsync();
+                if (ubicacion == null)
+                {
+                    await DisplayAlert("Error", "No se pudo obtener la ubicación inicial.", "OK");
+                    return;
+                }
+
+                // Mostrar datos para depuración
+                Debug.WriteLine($"Iniciando paseo para canino ID: {solicitud.IdCanino}");
+                Debug.WriteLine($"Ubicación obtenida: Lat={ubicacion.Latitude}, Long={ubicacion.Longitude}");
+
+                // Crear objeto GPS con validación
+                var gps = new Gps
+                {
+                    id_canino = solicitud.IdCanino,
+                    fecha_gps = DateTime.UtcNow,
+                    iniciolatitud = (decimal)ubicacion.Latitude,
+                    iniciolongitud = (decimal)ubicacion.Longitude,
+                    finlatitud = 0,
+                    finlongitud = 0
+                };
+
+                // Validar objeto GPS antes de enviar
+                if (gps.id_canino <= 0 || gps.iniciolatitud == 0 || gps.iniciolongitud == 0)
+                {
+                    Debug.WriteLine($"⚠️ Datos GPS no válidos: Canino={gps.id_canino}, Lat={gps.iniciolatitud}, Long={gps.iniciolongitud}");
+                    await DisplayAlert("Error", "Los datos de ubicación no son válidos.", "OK");
+                    return;
+                }
+
+                // Registrar GPS con manejo de errores mejorado
+                var response = await _apiService.RegistrarGpsAsync(gps);
+
+                if (response != null && response.id_gps > 0)
+                {
+                    // Actualizar estado de la solicitud
+                    solicitud.Estado = "En Progreso";
+                    solicitud.PuedeIniciar = false;
+                    solicitud.PuedeFinalizar = true;
+                    solicitud.MostrarBotonesPaseo = true;
+                    GuardarSolicitudes();
+
+                    // Guardar ID del GPS
+                    IdGpsPorCanino[solicitud.IdCanino] = response.id_gps;
+                    Preferences.Set($"IdGps_{solicitud.IdCanino}", response.id_gps.ToString());
+
+                    Debug.WriteLine($"✅ GPS registrado correctamente. ID: {response.id_gps}");
+                    await DisplayAlert("Éxito", $"Paseo {solicitud.IdSolicitud} iniciado correctamente.", "OK");
+
+                    // Enviar SMS de inicio
+                    var mainActivity = DependencyService.Get<IMainActivityService>();
+                    mainActivity?.SendSms("+593981257536", "777");
+                }
+                else
+                {
+                    await DisplayAlert("Error", "No se pudo registrar el inicio del paseo en el servidor.", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"🔥 Error crítico en OnIniciarPaseoClicked: {ex}");
+                await DisplayAlert("Error", $"Error al iniciar paseo: {ex.Message}", "OK");
+            }
+        }
         private async void OnFinalizarPaseoClicked(object sender, EventArgs e)
         {
             try
@@ -255,49 +338,61 @@ namespace AllkuApp.Vista
                     return;
                 }
 
-                string cedulaPaseador = Preferences.Get("CedulaPaseador", string.Empty);
-
-                if (string.IsNullOrEmpty(cedulaPaseador))
+                // Obtener el ID del GPS desde memoria o preferencias
+                if (!IdGpsPorCanino.TryGetValue(solicitud.IdCanino, out int idGps))
                 {
-                    await DisplayAlert("Error", "No se encontró la cédula del paseador en las preferencias.", "OK");
+                    // Si no está en memoria, intentamos obtenerlo de las preferencias
+                    var idGpsStr = Preferences.Get($"IdGps_{solicitud.IdCanino}", string.Empty);
+                    if (!string.IsNullOrEmpty(idGpsStr) && int.TryParse(idGpsStr, out idGps))
+                    {
+                        IdGpsPorCanino[solicitud.IdCanino] = idGps;
+                    }
+                    else
+                    {
+                        await DisplayAlert("Error", "No se encontró el registro del paseo. Inicia el paseo nuevamente.", "OK");
+                        return;
+                    }
+                }
+
+                var ubicacion = await ObtenerUbicacionAsync();
+                if (ubicacion == null)
+                {
+                    await DisplayAlert("Error", "No se pudo obtener la ubicación final.", "OK");
                     return;
                 }
 
-                // Obtener el ID de paseo a partir del ID de solicitud
-                var idPaseo = await _apiService.ObtenerIdPaseoPorIdSolicitudAsync(solicitud.IdSolicitud);
-
-                if (!idPaseo.HasValue)
+                var gps = new Gps
                 {
-                    await DisplayAlert("Error", "No se encontró un paseo asociado a esta solicitud.", "OK");
-                    return;
-                }
+                    id_gps = idGps,
+                    finlatitud = (decimal)ubicacion.Latitude,
+                    finlongitud = (decimal)ubicacion.Longitude
+                };
 
-                var (success, message) = await _apiService.FinalizarPaseoAsync(idPaseo.Value, cedulaPaseador);
+                Preferences.Set("LatitudFinal", ubicacion.Latitude.ToString());
+                Preferences.Set("LongitudFinal", ubicacion.Longitude.ToString());
 
-                if (success)
-                {
-                    solicitud.Estado = "Finalizado"; // Usar mayúscula consistentemente
-                    ActualizarEstadoBotones(solicitud);
-                    GuardarSolicitudes(); // Asegurarse de guardar el nuevo estado
-                    await DisplayAlert("Éxito", $"Paseo {idPaseo} finalizado correctamente.", "OK");
-                }
-                else
-                {
-                    await DisplayAlert("Error", message, "OK");
-                }
+                await _apiService.ActualizarGpsAsync(gps);
+
+                solicitud.Estado = "Finalizado";
+                solicitud.PuedeFinalizar = false;
+                GuardarSolicitudes();
+
+                await DisplayAlert("Éxito", $"Paseo {solicitud.IdSolicitud} finalizado correctamente.", "OK");
+
+                // Enviar SMS de finalización
+                var phoneNumber = "+593981257536";
+                var mainActivity = DependencyService.Get<IMainActivityService>();
+                mainActivity?.SendSms(phoneNumber, "000");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error al finalizar el paseo: {ex}");
-                await DisplayAlert("Error", $"Error al finalizar el paseo: {ex.Message}", "OK");
+                await DisplayAlert("Error", $"No se pudo finalizar el paseo: {ex.Message}", "OK");
             }
             finally
             {
                 IsBusy = false;
             }
         }
-
-
         private async Task ResponderSolicitud(SolicitudPaseoResponseDto solicitud, bool aceptada)
         {
             try
@@ -314,36 +409,29 @@ namespace AllkuApp.Vista
                 {
                     if (aceptada)
                     {
-                        //obtenemos datos desde preferences
                         string nombrePaseador = Preferences.Get("NombrePaseador", string.Empty);
                         string celularPaseador = Preferences.Get("CelularPaseador", string.Empty);
 
                         var caninos = await _apiService.GetCaninesAsync();
                         var canino = caninos?.FirstOrDefault(c => c.NombreCanino == solicitud.NombreCanino);
 
-                    if (canino != null)
-                    {
-                            // correctamente para WhatsApp
+                        if (canino != null)
+                        {
                             string whatsappLink = $"https://wa.me/+593{celularPaseador}";
 
-                            // Mensaje de notificación con el enlace clickeable
                             string mensajeNotificacion = $"Tu solicitud fue aceptada por {nombrePaseador}. " +
-                                                          $"Click para contactar: <a href='{whatsappLink}'><b>{celularPaseador}</b></a>";
-
+                             $"Click para contactar: {celularPaseador} ({whatsappLink})";
 
                             await _apiService.EnviarNotificacionAsync(
                             canino.IdCanino,
                             mensajeNotificacion,
                             cedula);
-                    }
-
+                        }
 
                         await DisplayAlert("Éxito", "Solicitud aceptada. Ahora puedes iniciar el paseo.", "OK");
 
-                        // Actualizar la UI en el hilo principal
                         MainThread.BeginInvokeOnMainThread(() =>
                         {
-                            // Actualizar solo la solicitud aceptada
                             var solicitudExistente = _solicitudes.FirstOrDefault(s => s.IdSolicitud == solicitud.IdSolicitud);
                             if (solicitudExistente != null)
                             {
@@ -357,7 +445,6 @@ namespace AllkuApp.Vista
                     }
                     else
                     {
-                        // Actualizar solicitud rechazada
                         MainThread.BeginInvokeOnMainThread(() =>
                         {
                             var solicitudExistente = _solicitudes.FirstOrDefault(s => s.IdSolicitud == solicitud.IdSolicitud);
@@ -397,6 +484,26 @@ namespace AllkuApp.Vista
                 await DisplayAlert("Error", "Ocurrió un error al procesar la solicitud.", "OK");
             }
         }
+
+        private async void OnConectarGpsClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                var phoneNumber = "+593981257536";
+                var connectMessage = "000";
+
+                var mainActivity = DependencyService.Get<IMainActivityService>();
+                mainActivity?.SendSms(phoneNumber, connectMessage);
+
+                await DisplayAlert("Éxito", "GPS conectado correctamente.", "OK");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error al conectar el GPS: {ex.Message}");
+                await DisplayAlert("Error", "No se pudo conectar el GPS.", "OK");
+            }
+        }
+
         private async void OnMenuPaseador_Clicked(object sender, EventArgs e)
         {
             await Navigation.PushAsync(new MenuPaseadorPage());

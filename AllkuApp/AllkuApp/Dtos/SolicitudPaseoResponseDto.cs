@@ -17,6 +17,7 @@ namespace AllkuApp.Dtos
         private bool _puedeIniciar;
         private bool _puedeFinalizar;
         private string _estado = "Pendiente";
+        private string _cedulaPaseador; // Nueva propiedad
 
         public int IdSolicitud
         {
@@ -124,6 +125,16 @@ namespace AllkuApp.Dtos
             set
             {
                 _estado = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string CedulaPaseador // Nueva propiedad
+        {
+            get => _cedulaPaseador;
+            set
+            {
+                _cedulaPaseador = value;
                 OnPropertyChanged();
             }
         }

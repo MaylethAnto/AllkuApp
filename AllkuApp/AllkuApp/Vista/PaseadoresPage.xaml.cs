@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Xamarin.Essentials;
@@ -113,7 +114,6 @@ namespace AllkuApp.Vista
             base.OnAppearing();
             await CargarSolicitudes();
         }
-
         private async Task CargarSolicitudes()
         {
             try
@@ -125,21 +125,32 @@ namespace AllkuApp.Vista
                     return;
                 }
 
+                // Obtenemos las solicitudes del paseador
                 var nuevasSolicitudes = await _apiService.GetSolicitudesPaseadorAsync(cedula);
+                Debug.WriteLine($"Solicitudes obtenidas de la API: {nuevasSolicitudes.Count}");
 
-                nuevasSolicitudes = nuevasSolicitudes.OrderByDescending(s => s.FechaSolicitud).ToList();
+                // Ya no filtramos por CedulaPaseador, asumimos que la API ya hizo ese filtro
+                var solicitudesOrdenadas = nuevasSolicitudes.OrderByDescending(s => s.FechaSolicitud).ToList();
 
-                foreach (var nuevaSolicitud in nuevasSolicitudes)
+                if (solicitudesOrdenadas.Count == 0)
+                {
+                    // Mostrar un mensaje cuando no hay solicitudes
+                    await DisplayAlert("Información", "No tienes solicitudes pendientes.", "OK");
+                    _solicitudes.Clear();
+                    SolicitudesListView.ItemsSource = _solicitudes;
+                    return;
+                }
+
+                // Actualizar la colección existente
+                foreach (var nuevaSolicitud in solicitudesOrdenadas)
                 {
                     var solicitudExistente = _solicitudes.FirstOrDefault(s => s.IdSolicitud == nuevaSolicitud.IdSolicitud);
-
                     if (solicitudExistente == null)
                     {
                         nuevaSolicitud.MostrarBotonesRespuesta = true;
                         nuevaSolicitud.MostrarBotonesPaseo = false;
                         nuevaSolicitud.PuedeIniciar = false;
                         nuevaSolicitud.PuedeFinalizar = false;
-
                         nuevaSolicitud.FechaSolicitud = TimeZoneInfo.ConvertTimeFromUtc(
                             nuevaSolicitud.FechaSolicitud,
                             TimeZoneInfo.CreateCustomTimeZone(
@@ -149,7 +160,6 @@ namespace AllkuApp.Vista
                                 "Ecuador Time"
                             )
                         );
-
                         _solicitudes.Add(nuevaSolicitud);
                     }
                     else
@@ -158,13 +168,15 @@ namespace AllkuApp.Vista
                     }
                 }
 
-                var solicitudesOrdenadas = new ObservableCollection<SolicitudPaseoResponseDto>(
+                // Actualizar el ListView
+                var nuevaColeccion = new ObservableCollection<SolicitudPaseoResponseDto>(
                     _solicitudes.OrderByDescending(s => s.FechaSolicitud)
                 );
-                _solicitudes = solicitudesOrdenadas;
+                _solicitudes = nuevaColeccion;
                 SolicitudesListView.ItemsSource = _solicitudes;
-
                 GuardarSolicitudes();
+
+                Debug.WriteLine($"Total de solicitudes en _solicitudes: {_solicitudes.Count}");
             }
             catch (Exception ex)
             {
@@ -172,7 +184,6 @@ namespace AllkuApp.Vista
                 await DisplayAlert("Error", "No se pudieron cargar las solicitudes.", "OK");
             }
         }
-
         private void GuardarSolicitudes()
         {
             try
@@ -241,10 +252,41 @@ namespace AllkuApp.Vista
                 return null;
             }
         }
+
+
+        // Calcula la distancia en kilómetros entre dos coordenadas GPS usando la fórmula de Haversine
+        private double CalcularDistanciaKm(double lat1, double lon1, double lat2, double lon2)
+        {
+            const double RADIO_TIERRA = 6371.0; // Radio medio de la Tierra en kilómetros
+
+            // Convertir a radianes
+            double latitud1 = lat1 * Math.PI / 180.0;
+            double longitud1 = lon1 * Math.PI / 180.0;
+            double latitud2 = lat2 * Math.PI / 180.0;
+            double longitud2 = lon2 * Math.PI / 180.0;
+
+            // Diferencias
+            double dLat = latitud2 - latitud1;
+            double dLon = longitud2 - longitud1;
+
+            // Fórmula de Haversine
+            double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                       Math.Cos(latitud1) * Math.Cos(latitud2) *
+                       Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+
+            double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            double distancia = RADIO_TIERRA * c;
+
+            return Math.Round(distancia, 2);
+        }
+
         private async void OnIniciarPaseoClicked(object sender, EventArgs e)
         {
             try
             {
+                // Mostrar indicador de carga
+                IsBusy = true;
+
                 // Validar el objeto sender y CommandParameter
                 if (!(sender is Button button) || !(button.CommandParameter is SolicitudPaseoResponseDto solicitud))
                 {
@@ -255,9 +297,21 @@ namespace AllkuApp.Vista
                 // Validar ID del canino
                 if (solicitud.IdCanino <= 0)
                 {
-                    Debug.WriteLine($"⚠️ ID de canino no válido: {solicitud.IdCanino}");
-                    await DisplayAlert("Error", "El ID del perro no es válido. No se puede iniciar el paseo.", "OK");
-                    return;
+                    Debug.WriteLine($"⚠️ ID de canino no válido: {solicitud.IdCanino}, intentando obtener por nombre");
+
+                    // Obtener el ID del canino por nombre
+                    int idCanino = await _apiService.ObtenerIdCaninoPorNombreAsync(solicitud.NombreCanino);
+
+                    if (idCanino <= 0)
+                    {
+                        Debug.WriteLine($"⚠️ No se pudo obtener el ID del canino para: {solicitud.NombreCanino}");
+                        await DisplayAlert("Error", "No se pudo obtener el ID del perro. No se puede iniciar el paseo.", "OK");
+                        return;
+                    }
+
+                    // Asignar el ID obtenido
+                    solicitud.IdCanino = idCanino;
+                    Debug.WriteLine($"✅ ID del canino obtenido: {idCanino} para {solicitud.NombreCanino}");
                 }
 
                 // Obtener ubicación con validación
@@ -269,24 +323,29 @@ namespace AllkuApp.Vista
                 }
 
                 // Mostrar datos para depuración
-                Debug.WriteLine($"Iniciando paseo para canino ID: {solicitud.IdCanino}");
+                Debug.WriteLine($"Iniciando paseo para canino ID: {solicitud.IdCanino}, Nombre: {solicitud.NombreCanino}");
                 Debug.WriteLine($"Ubicación obtenida: Lat={ubicacion.Latitude}, Long={ubicacion.Longitude}");
 
                 // Crear objeto GPS con validación
                 var gps = new Gps
                 {
-                    id_canino = solicitud.IdCanino,
-                    fecha_gps = DateTime.UtcNow,
-                    iniciolatitud = (decimal)ubicacion.Latitude,
-                    iniciolongitud = (decimal)ubicacion.Longitude,
-                    finlatitud = 0,
-                    finlongitud = 0
+                    IdCanino = solicitud.IdCanino,
+                    FechaGps = DateTime.UtcNow,
+                    InicioLatitud = (decimal)ubicacion.Latitude,
+                    InicioLongitud = (decimal)ubicacion.Longitude,
+                    FinLatitud = 0,
+                    FinLongitud = 0
                 };
 
+                // GUARDAR COORDENADAS INICIALES (AÑADE ESTO)
+                Preferences.Set($"InicioLatitud_{solicitud.IdCanino}", ubicacion.Latitude.ToString(CultureInfo.InvariantCulture));
+                Preferences.Set($"InicioLongitud_{solicitud.IdCanino}", ubicacion.Longitude.ToString(CultureInfo.InvariantCulture));
+                Debug.WriteLine($"📌 Coordenadas iniciales guardadas: {ubicacion.Latitude}, {ubicacion.Longitude}");
+
                 // Validar objeto GPS antes de enviar
-                if (gps.id_canino <= 0 || gps.iniciolatitud == 0 || gps.iniciolongitud == 0)
+                if (gps.IdCanino <= 0 || gps.InicioLatitud == 0 || gps.InicioLongitud == 0)
                 {
-                    Debug.WriteLine($"⚠️ Datos GPS no válidos: Canino={gps.id_canino}, Lat={gps.iniciolatitud}, Long={gps.iniciolongitud}");
+                    Debug.WriteLine($"⚠️ Datos GPS no válidos: Canino={gps.IdCanino}, Lat={gps.InicioLatitud}, Long={gps.InicioLongitud}");
                     await DisplayAlert("Error", "Los datos de ubicación no son válidos.", "OK");
                     return;
                 }
@@ -294,7 +353,7 @@ namespace AllkuApp.Vista
                 // Registrar GPS con manejo de errores mejorado
                 var response = await _apiService.RegistrarGpsAsync(gps);
 
-                if (response != null && response.id_gps > 0)
+                if (response != null && response.IdGps > 0)
                 {
                     // Actualizar estado de la solicitud
                     solicitud.Estado = "En Progreso";
@@ -304,10 +363,10 @@ namespace AllkuApp.Vista
                     GuardarSolicitudes();
 
                     // Guardar ID del GPS
-                    IdGpsPorCanino[solicitud.IdCanino] = response.id_gps;
-                    Preferences.Set($"IdGps_{solicitud.IdCanino}", response.id_gps.ToString());
+                    IdGpsPorCanino[solicitud.IdCanino] = response.IdGps;
+                    Preferences.Set($"IdGps_{solicitud.IdCanino}", response.IdGps.ToString());
 
-                    Debug.WriteLine($"✅ GPS registrado correctamente. ID: {response.id_gps}");
+                    Debug.WriteLine($"✅ GPS registrado correctamente. ID: {response.IdGps}");
                     await DisplayAlert("Éxito", $"Paseo {solicitud.IdSolicitud} iniciado correctamente.", "OK");
 
                     // Enviar SMS de inicio
@@ -324,19 +383,27 @@ namespace AllkuApp.Vista
                 Debug.WriteLine($"🔥 Error crítico en OnIniciarPaseoClicked: {ex}");
                 await DisplayAlert("Error", $"Error al iniciar paseo: {ex.Message}", "OK");
             }
+            finally
+            {
+                // Ocultar indicador de carga
+                IsBusy = false;
+            }
         }
+
         private async void OnFinalizarPaseoClicked(object sender, EventArgs e)
         {
             try
             {
                 IsBusy = true;
-                var solicitud = (SolicitudPaseoResponseDto)((Button)sender).CommandParameter;
 
-                if (solicitud == null)
+                // Validar el objeto sender y CommandParameter
+                if (!(sender is Button button) || !(button.CommandParameter is SolicitudPaseoResponseDto solicitud))
                 {
-                    await DisplayAlert("Error", "No se encontró la información de la solicitud.", "OK");
+                    await DisplayAlert("Error", "No se pudo obtener la información de la solicitud.", "OK");
                     return;
                 }
+
+                Debug.WriteLine($"Finalizando paseo para canino ID: {solicitud.IdCanino}, Nombre: {solicitud.NombreCanino}");
 
                 // Obtener el ID del GPS desde memoria o preferencias
                 if (!IdGpsPorCanino.TryGetValue(solicitud.IdCanino, out int idGps))
@@ -346,46 +413,109 @@ namespace AllkuApp.Vista
                     if (!string.IsNullOrEmpty(idGpsStr) && int.TryParse(idGpsStr, out idGps))
                     {
                         IdGpsPorCanino[solicitud.IdCanino] = idGps;
+                        Debug.WriteLine($"ID GPS recuperado de preferencias: {idGps}");
                     }
                     else
                     {
+                        Debug.WriteLine("⚠️ No se encontró el ID del GPS");
                         await DisplayAlert("Error", "No se encontró el registro del paseo. Inicia el paseo nuevamente.", "OK");
                         return;
                     }
                 }
 
-                var ubicacion = await ObtenerUbicacionAsync();
-                if (ubicacion == null)
+                // Obtener ubicación final con validación
+                var ubicacionFinal = await ObtenerUbicacionAsync();
+                if (ubicacionFinal == null)
                 {
                     await DisplayAlert("Error", "No se pudo obtener la ubicación final.", "OK");
                     return;
                 }
 
+                Debug.WriteLine($"Ubicación final obtenida: Lat={ubicacionFinal.Latitude}, Long={ubicacionFinal.Longitude}");
+
+                // Recuperar las coordenadas iniciales de las preferencias
+                double inicioLatitud = 0;
+                double inicioLongitud = 0;
+
+                // Recuperar con CultureInfo.InvariantCulture
+                var latStr = Preferences.Get($"InicioLatitud_{solicitud.IdCanino}", null);
+                var lonStr = Preferences.Get($"InicioLongitud_{solicitud.IdCanino}", null);
+
+                if (!string.IsNullOrEmpty(latStr))
+                    double.TryParse(latStr, NumberStyles.Any, CultureInfo.InvariantCulture, out inicioLatitud);
+
+                if (!string.IsNullOrEmpty(lonStr))
+                    double.TryParse(lonStr, NumberStyles.Any, CultureInfo.InvariantCulture, out inicioLongitud);
+
+                if (inicioLatitud == 0 || inicioLongitud == 0)
+                {
+                    Debug.WriteLine("⚠️ No se encontraron coordenadas iniciales guardadas");
+                    await DisplayAlert("Advertencia", "No se encontró el punto de inicio del paseo", "OK");
+                    return;
+                }
+
+                Debug.WriteLine($"📍 Coordenadas iniciales recuperadas: Lat={inicioLatitud}, Lon={inicioLongitud}");
+            
+
+                // Crear objeto GPS con ubicación final
                 var gps = new Gps
                 {
-                    id_gps = idGps,
-                    finlatitud = (decimal)ubicacion.Latitude,
-                    finlongitud = (decimal)ubicacion.Longitude
+                    IdGps = idGps,
+                    FinLatitud = (decimal)ubicacionFinal.Latitude,
+                    FinLongitud = (decimal)ubicacionFinal.Longitude
                 };
 
-                Preferences.Set("LatitudFinal", ubicacion.Latitude.ToString());
-                Preferences.Set("LongitudFinal", ubicacion.Longitude.ToString());
+                // Calcular distancia si tenemos las coordenadas iniciales
+                double distanciaKm = CalcularDistanciaKm(
+                     inicioLatitud,
+                     inicioLongitud,
+                     ubicacionFinal.Latitude,
+                     ubicacionFinal.Longitude
+                 );
 
-                await _apiService.ActualizarGpsAsync(gps);
+                Debug.WriteLine($"📏 Distancia calculada: {distanciaKm} km");
 
-                solicitud.Estado = "Finalizado";
-                solicitud.PuedeFinalizar = false;
-                GuardarSolicitudes();
+                // Guardar coordenadas finales en preferencias
+                Preferences.Set("LatitudFinal", ubicacionFinal.Latitude.ToString());
+                Preferences.Set("LongitudFinal", ubicacionFinal.Longitude.ToString());
 
-                await DisplayAlert("Éxito", $"Paseo {solicitud.IdSolicitud} finalizado correctamente.", "OK");
+                // Actualizar GPS en la API
+                try
+                {
+                    await _apiService.ActualizarGpsAsync(gps);
 
-                // Enviar SMS de finalización
-                var phoneNumber = "+593981257536";
-                var mainActivity = DependencyService.Get<IMainActivityService>();
-                mainActivity?.SendSms(phoneNumber, "000");
+                    // Actualizar estado de la solicitud
+                    solicitud.Estado = "Finalizado";
+                    solicitud.PuedeFinalizar = false;
+                    solicitud.MostrarBotonesPaseo = false;
+                    GuardarSolicitudes();
+
+                    // Eliminar ID del GPS de la memoria y preferencias
+                    IdGpsPorCanino.Remove(solicitud.IdCanino);
+                    Preferences.Remove($"IdGps_{solicitud.IdCanino}");
+                    Preferences.Remove($"InicioLatitud_{idGps}");
+                    Preferences.Remove($"InicioLongitud_{idGps}");
+
+                    string mensajeDistancia = distanciaKm > 0
+                        ? $"\nDistancia recorrida: {distanciaKm:F2} km"
+                        : "";
+
+                    await DisplayAlert("Éxito", $"Paseo finalizado correctamente.{mensajeDistancia}", "OK");
+
+                    // Enviar SMS de finalización
+                    var phoneNumber = "+593981257536";
+                    var mainActivity = DependencyService.Get<IMainActivityService>();
+                    mainActivity?.SendSms(phoneNumber, "000");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error al actualizar GPS: {ex.Message}");
+                    await DisplayAlert("Error", $"No se pudo finalizar el paseo: {ex.Message}", "OK");
+                }
             }
             catch (Exception ex)
             {
+                Debug.WriteLine($"🔥 Error crítico en OnFinalizarPaseoClicked: {ex}");
                 await DisplayAlert("Error", $"No se pudo finalizar el paseo: {ex.Message}", "OK");
             }
             finally

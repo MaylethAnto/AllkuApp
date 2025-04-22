@@ -512,10 +512,10 @@ namespace AllkuApp.Servicios
                 if (gps == null)
                     throw new ArgumentNullException(nameof(gps), "El objeto GPS no puede ser nulo");
 
-                if (gps.id_canino <= 0)
-                    throw new ArgumentException($"ID de canino no válido: {gps.id_canino}");
+                if (gps.IdCanino <= 0)
+                    throw new ArgumentException($"ID de canino no válido: {gps.IdCanino}");
 
-                if (gps.iniciolatitud == 0 || gps.iniciolongitud == 0)
+                if (gps.InicioLatitud == 0 || gps.InicioLongitud == 0)
                     throw new ArgumentException("Las coordenadas iniciales no pueden ser cero");
 
                 // Configurar serialización
@@ -568,70 +568,106 @@ namespace AllkuApp.Servicios
                 throw new Exception("Ocurrió un error inesperado al registrar el GPS.");
             }
         }
-        public async Task ActualizarGpsAsync(Gps gps)
+
+        private async Task<Location> ObtenerUbicacionAsync()
         {
             try
             {
-                // Verificar que el ID sea válido
-                Debug.WriteLine($"Actualizando GPS con ID: {gps.id_gps}");
-                if (gps.id_gps <= 0)
-                {
-                    throw new ArgumentException($"ID de GPS no válido: {gps.id_gps}");
-                }
-
-                // Verificar que las coordenadas no sean cero o valores extremos
-                Debug.WriteLine($"Coordenadas finales: Lat: {gps.finlatitud}, Long: {gps.finlongitud}");
-
-                var datosFinales = new
-                {
-                    FinLatitud = gps.finlatitud,
-                    FinLongitud = gps.finlongitud
-                };
-
-                // Usar System.Text.Json en lugar de Newtonsoft si es posible
-                var jsonOptions = new System.Text.Json.JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
-                };
-                var json = System.Text.Json.JsonSerializer.Serialize(datosFinales, jsonOptions);
-                Debug.WriteLine($"Enviando datos: {json}");
-
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var url = $"{_baseUrl}/Gps/finalizar/{gps.id_gps}";
-                Debug.WriteLine($"URL: {url}");
-
-                // Establecer un timeout más largo
-                _client.Timeout = TimeSpan.FromSeconds(30);
-
-                var response = await _client.PutAsync(url, content);
-                Debug.WriteLine($"Código de respuesta: {(int)response.StatusCode} {response.StatusCode}");
-
-                var responseContent = await response.Content.ReadAsStringAsync();
-                Debug.WriteLine($"Contenido de respuesta: {responseContent}");
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    Debug.WriteLine($"Error del servidor: {(int)response.StatusCode} {response.StatusCode} - {responseContent}");
-                    throw new HttpRequestException($"Error al actualizar GPS: {response.StatusCode}. Respuesta: {responseContent}");
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                Debug.WriteLine($"Error de HTTP: {ex.Message}");
-                throw;
-            }
-            catch (TaskCanceledException ex)
-            {
-                Debug.WriteLine($"Timeout al comunicarse con el servidor: {ex.Message}");
-                throw new Exception("Tiempo de espera agotado al comunicarse con el servidor. Verifica tu conexión de Internet.", ex);
+                var request = new GeolocationRequest(GeolocationAccuracy.Best);
+                return await Geolocation.GetLocationAsync(request);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error inesperado: {ex.GetType().Name} - {ex.Message}");
-                Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
-                throw;
+                Debug.WriteLine($"Error al obtener ubicación: {ex.Message}");
+                return null;
             }
         }
+        public async Task ActualizarGpsAsync(Gps gps)
+        {
+            // Verificar que el ID sea válido
+            if (gps.IdGps <= 0)
+            {
+                throw new ArgumentException($"ID de GPS no válido: {gps.IdGps}");
+            }
+
+            // Crear una NUEVA instancia de HttpClient
+            using (var client = new HttpClient())
+            {
+                try
+                {
+                    // Configurar timeout ANTES de cualquier petición
+                    client.Timeout = TimeSpan.FromSeconds(30);
+
+                    // Preparar datos
+                    var datosFinales = new
+                    {
+                        FinLatitud = gps.FinLatitud,
+                        FinLongitud = gps.FinLongitud,
+                        DistanciaKm = gps.DistanciaKm 
+                    };
+
+                    var json = JsonConvert.SerializeObject(datosFinales);
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                    // Enviar petición
+                    var response = await client.PutAsync($"{_baseUrl}/Gps/finalizar/{gps.IdGps}", content);
+
+                    // Procesar respuesta
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        var errorContent = await response.Content.ReadAsStringAsync();
+                        throw new HttpRequestException($"Error HTTP {response.StatusCode}: {errorContent}");
+                    }
+                }
+                catch (TaskCanceledException ex)
+                {
+                    throw new Exception("Timeout: El servidor no respondió a tiempo.", ex);
+                }
+            }
+        }
+
+        public async Task<int> ObtenerIdCaninoPorNombreAsync(string nombreCanino)
+        {
+            try
+            {
+                // URL para buscar caninos por nombre
+                var url = $"{_baseUrl}/Canino/Caninos/buscar?nombre={Uri.EscapeDataString(nombreCanino)}";
+                Debug.WriteLine($"Buscando canino: {url}");
+
+                var response = await _client.GetAsync(url);
+                var responseContent = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine($"Respuesta de búsqueda de canino: {responseContent}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Deserializar la respuesta
+                    var caninos = JsonConvert.DeserializeObject<List<CaninoDto>>(responseContent);
+
+                    if (caninos != null && caninos.Count > 0)
+                    {
+                        // Devolver el ID del primer canino encontrado
+                        return caninos[0].IdCanino;
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"No se encontraron caninos con el nombre: {nombreCanino}");
+                        return -1;
+                    }
+                }
+                else
+                {
+                    Debug.WriteLine($"Error al buscar canino: {response.StatusCode}");
+                    return -1;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error al obtener ID del canino: {ex.Message}");
+                return -1;
+            }
+        }
+
+       
     }
 
     public class CaninoRequest

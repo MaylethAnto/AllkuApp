@@ -1,6 +1,10 @@
-﻿using AllkuApp.Servicios;
+﻿using AllkuApp.Modelo;
+using AllkuApp.Servicios;
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Timers;
+using System.Linq;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.GoogleMaps;
@@ -12,12 +16,14 @@ namespace AllkuApp.Vista
     public partial class GPSPage : ContentPage
     {
         private Timer timer;
+        private readonly ApiService _apiService;
         public static GPSPage Instance { get; private set; }
 
         public GPSPage()
         {
             InitializeComponent();
             Instance = this;
+            _apiService = new ApiService();
             RequestPermissions();
         }
 
@@ -34,7 +40,7 @@ namespace AllkuApp.Vista
             }
             else
             {
-                await DisplayAlert("Permission Denied", "Location permission is required to display the map.", "OK");
+                await DisplayAlert("Permiso denegado", "Se requiere permiso de ubicación para mostrar el mapa.", "OK");
             }
         }
 
@@ -55,94 +61,124 @@ namespace AllkuApp.Vista
 
         private void OnMostrarRecorridoClicked(object sender, EventArgs e)
         {
-            MostrarRecorrido();
+            MostrarUltimoRecorridoCanino();
         }
 
-        private void MostrarRecorrido()
+        private async void MostrarUltimoRecorridoCanino()
         {
-            var latitudInicioStr = Preferences.Get("LatitudInicio", null);
-            var longitudInicioStr = Preferences.Get("LongitudInicio", null);
-            var latitudFinalStr = Preferences.Get("LatitudFinal", null);
-            var longitudFinalStr = Preferences.Get("LongitudFinal", null);
-
-            if (latitudInicioStr != null && longitudInicioStr != null && latitudFinalStr != null && longitudFinalStr != null)
+            try
             {
-                if (double.TryParse(latitudInicioStr, out double latitudInicio) &&
-                    double.TryParse(longitudInicioStr, out double longitudInicio) &&
-                    double.TryParse(latitudFinalStr, out double latitudFinal) &&
-                    double.TryParse(longitudFinalStr, out double longitudFinal))
+                var idCanino = Preferences.Get("CaninoId", -1);
+                if (idCanino == -1)
                 {
-                    MainThread.BeginInvokeOnMainThread(() =>
-                    {
-                        try
-                        {
-                            // Limpiar pins existentes
-                            map.Pins.Clear();
-
-                            var posicionInicio = new Position(latitudInicio, longitudInicio);
-                            var posicionFinal = new Position(latitudFinal, longitudFinal);
-
-                            // Crear pin de inicio
-                            var pinInicio = new Pin
-                            {
-                                Type = PinType.Place,
-                                Position = posicionInicio,
-                                Label = "Inicio del Paseo",
-                                Address = $"Lat: {latitudInicio}, Long: {longitudInicio}"
-                            };
-
-                            // Crear pin de final
-                            var pinFinal = new Pin
-                            {
-                                Type = PinType.Place,
-                                Position = posicionFinal,
-                                Label = "Fin del Paseo",
-                                Address = $"Lat: {latitudFinal}, Long: {longitudFinal}"
-                            };
-
-                            // Agregar los pins al mapa
-                            map.Pins.Add(pinInicio);
-                            map.Pins.Add(pinFinal);
-
-                            // Crear una línea para representar el recorrido
-                            var recorrido = new Polyline
-                            {
-                                StrokeColor = Color.Blue,
-                                StrokeWidth = 5
-                            };
-
-                            recorrido.Positions.Add(posicionInicio);
-                            recorrido.Positions.Add(posicionFinal);
-
-                            // Agregar la línea al mapa
-                            map.Polylines.Add(recorrido);
-
-                            // Mover el mapa para mostrar el recorrido completo
-                            var bounds = new Bounds(posicionInicio, posicionFinal);
-                            map.MoveToRegion(MapSpan.FromBounds(bounds));
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error mostrando recorrido en el mapa: {ex.Message}");
-                        }
-                    });
+                    await DisplayAlert("Error", "No se encontró el ID del canino.", "OK");
+                    return;
                 }
+
+                var paseos = await ObtenerPaseosFinalizadosAsync(idCanino);
+                if (paseos == null || !paseos.Any())
+                {
+                    await DisplayAlert("Información", "No hay paseos registrados para este canino", "OK");
+                    return;
+                }
+
+                var ultimoPaseo = paseos.OrderByDescending(p => p.FechaInicio).FirstOrDefault();
+
+                if (ultimoPaseo == null ||
+                    !ultimoPaseo.LatitudInicio.HasValue ||
+                    !ultimoPaseo.LongitudInicio.HasValue ||
+                    !ultimoPaseo.LatitudFin.HasValue ||
+                    !ultimoPaseo.LongitudFin.HasValue)
+                {
+                    await DisplayAlert("Información", "El último paseo no tiene coordenadas completas registradas.", "OK");
+                    return;
+                }
+
+                double latitudInicio = ultimoPaseo.LatitudInicio.Value;
+                double longitudInicio = ultimoPaseo.LongitudInicio.Value;
+                double latitudFinal = ultimoPaseo.LatitudFin.Value;
+                double longitudFinal = ultimoPaseo.LongitudFin.Value;
+
+
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    try
+                    {
+                        map.Pins.Clear();
+                        map.Polylines?.Clear();
+
+                        var posicionInicio = new Position(latitudInicio, longitudInicio);
+                        var posicionFinal = new Position(latitudFinal, longitudFinal);
+
+                        var pinInicio = new Pin
+                        {
+                            Type = PinType.Place,
+                            Position = posicionInicio,
+                            Label = "📍 Punto A (Inicio)",
+                            Address = $"Lat: {latitudInicio}, Long: {longitudInicio}"
+                        };
+
+                        var pinFinal = new Pin
+                        {
+                            Type = PinType.Place,
+                            Position = posicionFinal,
+                            Label = "🏁 Punto B (Fin)",
+                            Address = $"Lat: {latitudFinal}, Long: {longitudFinal}"
+                        };
+
+                        map.Pins.Add(pinInicio);
+                        map.Pins.Add(pinFinal);
+
+                        var recorrido = new Polyline
+                        {
+                            StrokeColor = Color.FromHex("#FF7F50"), // Color coral
+                            StrokeWidth = 6
+                        };
+                        recorrido.Positions.Add(posicionInicio);
+                        recorrido.Positions.Add(posicionFinal);
+
+                        map.Polylines.Add(recorrido);
+
+                        map.MoveToRegion(MapSpan.FromCenterAndRadius(
+                            new Position((latitudInicio + latitudFinal) / 2, (longitudInicio + longitudFinal) / 2),
+                            Distance.FromMeters(500))
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error mostrando recorrido en el mapa: {ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error general: {ex.Message}");
+                await DisplayAlert("Error", "Ocurrió un error al cargar el recorrido", "OK");
             }
         }
 
-        // Método para actualizar la ubicación en el mapa
+        private async Task<List<PaseoModel>> ObtenerPaseosFinalizadosAsync(int idCanino)
+        {
+            try
+            {
+                return await _apiService.ObtenerPaseosFinalizadosAsync(idCanino);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener paseos: {ex.Message}");
+                return new List<PaseoModel>();
+            }
+        }
+
         public void UpdateMap(double latitud, double longitud)
         {
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 try
                 {
-                    // Limpiar pins existentes
                     map.Pins.Clear();
 
                     var nuevaPosicion = new Position(latitud, longitud);
-
-                    // Crear un nuevo pin en la nueva posición
                     var pinNuevo = new Pin
                     {
                         Type = PinType.Place,
@@ -151,10 +187,7 @@ namespace AllkuApp.Vista
                         Address = $"Lat: {latitud}, Long: {longitud}"
                     };
 
-                    // Agregar el nuevo pin al mapa
                     map.Pins.Add(pinNuevo);
-
-                    // Mover el mapa a la nueva posición
                     map.MoveToRegion(MapSpan.FromCenterAndRadius(nuevaPosicion, Distance.FromKilometers(1)));
                 }
                 catch (Exception ex)

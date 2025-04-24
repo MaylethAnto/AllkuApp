@@ -73,7 +73,7 @@ namespace AllkuApp.Servicios
                 {
                     return new LoginResponse
                     {
-                        Mensaje = "Error al iniciar sesión",
+                        Mensaje = "Usuario o contraseña incorrectos",
                         Rol = "",
                         CedulaDueno = string.Empty,
                         CedulaPaseador = string.Empty,

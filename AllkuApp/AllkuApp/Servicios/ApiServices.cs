@@ -223,7 +223,6 @@ namespace AllkuApp.Servicios
             }
         }
 
-
         public async Task<List<PaseoModel>> ObtenerPaseosFinalizadosAsync(int idCanino)
         {
             var url = $"{_baseUrl}/Gps/paseos-finalizados/{idCanino}";
